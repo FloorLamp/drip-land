@@ -1,5 +1,6 @@
 import Array "mo:base/Array";
 import HashMap "mo:base/HashMap";
+import Iter "mo:base/Iter";
 import Option "mo:base/Option";
 import Principal "mo:base/Principal";
 import Nat64 "mo:base/Nat64";
@@ -10,12 +11,17 @@ import Drip "./DripTypes";
 import T "./Types";
 
 shared actor class Unbundler() = this {
+  // ---- Constants
+  let drip : Drip.Self = actor "d3ttm-qaaaa-aaaai-qam4a-cai";
 
+
+  // ---- State
   var ledger: T.PrincipalToIds = HashMap.HashMap<Principal, [Nat64]>(1, Principal.equal, Principal.hash);
   stable var ledgerEntries: [T.PrincipalToIdsEntry] = [];
   stable var allItems: [T.Item] = [];
 
-  let drip : Drip.Self = actor "d3ttm-qaaaa-aaaai-qam4a-cai";
+
+  // ---- Queries
 
   public query func name() : async Text {
     "IC_DRIP Item"
@@ -37,6 +43,13 @@ shared actor class Unbundler() = this {
     ?allItems[Nat64.toNat(id)].owner
   };
 
+  public query func data_of(id: Nat64) : async T.Item {
+    allItems[Nat64.toNat(id)]
+  };
+
+
+  // ---- Updates
+
   public shared({caller}) func transfer_to(receiver: Principal, id: Nat64) : async Bool {
     let senderIds = Option.get(ledger.get(receiver), []);
 
@@ -51,10 +64,6 @@ shared actor class Unbundler() = this {
         false;
       }
     }
-  };
-
-  public query func data_of(id: Nat64) : async T.Item {
-    allItems[Nat64.toNat(id)]
   };
 
   public shared({ caller }) func unbundle(id: Nat64): async Result.Result<(), Text> {
@@ -84,5 +93,16 @@ shared actor class Unbundler() = this {
         #err("Token " # Nat64.toText(id) # " not found!")
       }
     }
+  };
+
+
+  // ---- System
+
+  system func preupgrade() {
+    ledgerEntries := Iter.toArray(ledger.entries());
+  };
+
+  system func postupgrade() {
+    ledger := HashMap.fromIter<Principal, [Nat64]>(ledgerEntries.vals(), ledgerEntries.size(), Principal.equal, Principal.hash);
   };
 };
