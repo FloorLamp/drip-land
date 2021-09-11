@@ -1,21 +1,8 @@
 {
   "canisters": {
-    "unbundler": {
-      "main": "src/unbundler/main.mo",
+    "Unbundler": {
+      "main": "src/Unbundler/Unbundler.mo",
       "type": "motoko"
-    },
-    "unbundler_assets": {
-      "dependencies": [
-        "unbundler"
-      ],
-      "frontend": {
-        "entrypoint": "src/unbundler_assets/src/index.html"
-      },
-      "source": [
-        "src/unbundler_assets/assets",
-        "dist/unbundler_assets/"
-      ],
-      "type": "assets"
     }
   },
   "defaults": {

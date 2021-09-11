@@ -1,0 +1,29 @@
+type Unbundler = 
+ service {
+   data_of: (nat64) -> (Item) query;
+   name: () -> (text) query;
+   owner_of: (nat64) -> (opt principal) query;
+   symbol: () -> (text) query;
+   total_supply: () -> (nat) query;
+   transfer_to: (principal, nat64) -> (bool);
+   unbundle: (nat64) -> (Result);
+   user_tokens: (principal) -> (vec nat64) query;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok;
+ };
+type Property = 
+ record {
+   name: text;
+   value: text;
+ };
+type Item = 
+ record {
+   id: nat64;
+   name: text;
+   owner: principal;
+   properties: vec Property;
+ };
+service : () -> Unbundler
