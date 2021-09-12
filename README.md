@@ -2,6 +2,10 @@
 
 Unbundle your [IC Drip](http://icdrip.io/) into individual items.
 
+[Canister mx7fv-viaaa-aaaah-aarsa-cai](https://ic.rocks/principal/mx7fv-viaaa-aaaah-aarsa-cai)
+
+This token interface is similar to [ICPunks](https://github.com/stopak/ICPunks/blob/dev/service/icpunks_rust.did) and [EXT](https://github.com/Toniq-Labs/extendable-token), but with batch queries and notifications. It's slightly different from the original IC Drip interface.
+
 ## Types
 
 ### Items
@@ -10,7 +14,11 @@ Unbundle your [IC Drip](http://icdrip.io/) into individual items.
 type Property =
  record {
    name: text;
-   value: text;
+   value: variant {
+            Bool: bool;
+            Int: int64;
+            Text: text;
+          };
  };
 type Item =
  record {
@@ -21,25 +29,41 @@ type Item =
  };
 ```
 
-## Updates
+## Usage
 
-### `unbundle: (nat64) -> (Result);`
+### Unbundle
 
-Burns the Drip (owned by caller) by transferring ownership to `aaaaa-aa`. For each item, mint a new `Item` containing `Property { name = "slot"; name = "..." }`.
+Call `drip.transfer_with_notify("mx7fv-viaaa-aaaah-aarsa-cai", token_id)`.
 
-### `transfer_to: (principal, nat64) -> (bool);`
+This will burn the callers' Drip by transferring ownership to `aaaaa-aa`. For each constituent, mint a new `Item` containing properties:
 
-Transfer `Item` by id.
+```
+Property { name = "slot"; value = "..." }
+Property { name = "name"; value = "..." }
+Property { name = "prefix"; value = "..." }
+Property { name = "name_prefix"; value = "..." }
+Property { name = "name_suffix"; value = "..." }
+Property { name = "special"; value = "..." }
+```
+
+### Transfer
+
+```
+transfer_to: (principal, nat64, opt bool) -> (bool);
+```
+
+Transfers `Item` by id, optionally notifying the receiver.
 
 ## Queries
 
 ```
-data_of: (nat64) -> (Item) query;
 name: () -> (text) query;
-owner_of: (nat64) -> (opt principal) query;
 symbol: () -> (text) query;
 total_supply: () -> (nat) query;
-user_tokens: (principal) -> (vec nat64) query;
-```
+drips_burned_count: () -> (nat) query;
 
-Similar to the [ICPunks](https://github.com/stopak/ICPunks/blob/dev/service/icpunks_rust.did) interface, this is simple and lightweight.
+owner_of: (vec nat64) -> (vec principal) query;
+data_of: (vec nat64) -> (vec Item) query;
+
+user_tokens: (opt principal) -> (vec nat64) query;
+```

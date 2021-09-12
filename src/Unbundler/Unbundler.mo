@@ -1,4 +1,5 @@
 import Array "mo:base/Array";
+import Debug "mo:base/Debug";
 import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
 import Option "mo:base/Option";
@@ -12,13 +13,14 @@ import T "./Types";
 
 shared actor class Unbundler() = this {
   // ---- Constants
-  let drip : Drip.Self = actor "d3ttm-qaaaa-aaaai-qam4a-cai";
+  let drip : Drip.Self = actor "prees-saaaa-aaaai-qanqa-cai";
 
 
   // ---- State
   var ledger: T.PrincipalToIds = HashMap.HashMap<Principal, [Nat64]>(1, Principal.equal, Principal.hash);
   stable var ledgerEntries: [T.PrincipalToIdsEntry] = [];
   stable var allItems: [T.Item] = [];
+  stable var dripsBurned: [Nat64] = [];
 
 
   // ---- Queries
@@ -31,33 +33,56 @@ shared actor class Unbundler() = this {
     "IC_DRIP_ITEM"
   };
 
+  public query func drips_burned_count() : async Nat {
+    dripsBurned.size()
+  };
+
   public query func total_supply() : async Nat {
     allItems.size()
   };
 
-  public query func user_tokens(user: Principal) : async [Nat64] {
-    Option.get(ledger.get(user), [])
+  public query({caller}) func user_tokens(user: ?Principal) : async [Nat64] {
+    Option.get(ledger.get(caller), [])
   };
 
-  public query func owner_of(id: Nat64) : async (?Principal) {
-    ?allItems[Nat64.toNat(id)].owner
+  public query func owner_of(ids: [Nat64]) : async [Principal] {
+    Array.map<Nat64, Principal>(ids, func (i) { allItems[Nat64.toNat(i)].owner })
   };
 
-  public query func data_of(id: Nat64) : async T.Item {
-    allItems[Nat64.toNat(id)]
+  public query func data_of(ids: [Nat64]) : async [T.Item] {
+    Array.map<Nat64, T.Item>(ids, func (i) { allItems[Nat64.toNat(i)] })
   };
 
 
   // ---- Updates
 
-  public shared({caller}) func transfer_to(receiver: Principal, id: Nat64) : async Bool {
-    let senderIds = Option.get(ledger.get(receiver), []);
+  public shared({caller}) func transfer_to(receiver: Principal, id: Nat64, notify: ?Bool) : async Bool {
+    let senderTokenIds = Option.get(ledger.get(caller), []);
 
-    switch (Array.find<Nat64>(senderIds, func (i) { i == id })) {
+    switch (Array.find<Nat64>(senderTokenIds, func (i) { i == id })) {
       case (?found) {
-        let receiverIds = Option.get(ledger.get(receiver), []);
-        ledger.put(caller, Array.filter<Nat64>(senderIds, func (i) { i != id }));
-        ledger.put(receiver, Array.append(receiverIds, [id]));
+        let receiverTokenIds = Option.get(ledger.get(receiver), []);
+        ledger.put(caller, Array.filter<Nat64>(senderTokenIds, func (i) { i != id }));
+        ledger.put(receiver, Array.append(receiverTokenIds, [id]));
+
+        if (notify == ?true) {
+          let ns : T.NotifyService = actor(Principal.toText(receiver));
+          try {
+            let r = await ns.transfer_notification({
+              to = receiver;
+              token_id = id;
+              from = caller;
+              amount = 1;
+            });
+            if (Option.isNull(r)) {
+              // Not notified!
+              return false;
+            };
+          } catch (error) {
+            return false;
+          };
+        };
+
         true
       };
       case _ {
@@ -66,33 +91,54 @@ shared actor class Unbundler() = this {
     }
   };
 
-  public shared({ caller }) func unbundle(id: Nat64): async Result.Result<(), Text> {
-    let drips = await drip.user_tokens(caller);
-    switch (Array.find<Nat64>(drips, func (i) { i == id })) {
-      case (?found) {
-        let data = await drip.get_token_properties(id);
-        if (not (await drip.transfer_to(Principal.fromText("aaaaa-aa"), id))) {
-          return #err("Burn failed!");
-        };
-        let idx = data.size();
-        allItems := Array.append(allItems, Array.tabulate<T.Item>(data.size(), func (i) {
-          {
-            id = Nat64.fromNat(i + idx);
-            name = data[i].1;
-            owner = caller;
-            properties = [{
-              name = "slot";
-              value = data[i].0;
-            }]
-          }
-        }));
+  // Notified by drip
+  public shared({ caller }) func transfer_notification({to; from; token_id; amount}: Drip.TransferNotification): async Result.Result<(), Text> {
+    Debug.print("transfer_notification " # debug_show({to; from; token_id; amount}));
+    assert(caller == Principal.fromActor(drip) and to == Principal.fromActor(this));
 
-        #ok(())
-      };
-      case _ {
-        #err("Token " # Nat64.toText(id) # " not found!")
+    // Send to burn address
+    if (not (await drip.transfer_to(Principal.fromText("aaaaa-aa"), token_id))) {
+      return #err("Burn failed!");
+    };
+
+    dripsBurned := Array.append(dripsBurned, [token_id]);
+
+    // Create new constituent items
+    let data = await drip.data_of(token_id);
+    let idx = allItems.size();
+    let newItems = Array.tabulate<T.Item>(data.size(), func (i) {
+      {
+        id = Nat64.fromNat(i + idx);
+        name = data[i].name;
+        owner = from;
+        properties = [{
+          name = "slot";
+          value = #Text(data[i].slot);
+        }, {
+          name = "name";
+          value = #Text(data[i].name);
+        }, {
+          name = "prefix";
+          value = #Text(data[i].prefix);
+        }, {
+          name = "name_prefix";
+          value = #Text(data[i].name_prefix);
+        }, {
+          name = "name_suffix";
+          value = #Text(data[i].name_suffix);
+        }, {
+          name = "special";
+          value = #Bool(data[i].special);
+        }]
       }
-    }
+    });
+    allItems := Array.append(allItems, newItems);
+
+    // Add to receiver ledger
+    let receiverTokenIds = Option.get(ledger.get(from), []);
+    ledger.put(from, Array.append(receiverTokenIds, Array.map<T.Item, Nat64>(newItems, func ({id}) { id })));
+
+    #ok(())
   };
 
 

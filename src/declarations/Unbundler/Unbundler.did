@@ -1,13 +1,21 @@
 type Unbundler = 
  service {
-   data_of: (nat64) -> (Item) query;
+   data_of: (vec nat64) -> (vec Item) query;
+   drips_burned_count: () -> (nat) query;
    name: () -> (text) query;
-   owner_of: (nat64) -> (opt principal) query;
+   owner_of: (vec nat64) -> (vec principal) query;
    symbol: () -> (text) query;
    total_supply: () -> (nat) query;
-   transfer_to: (principal, nat64) -> (bool);
-   unbundle: (nat64) -> (Result);
-   user_tokens: (principal) -> (vec nat64) query;
+   transfer_notification: (TransferNotification) -> (Result);
+   transfer_to: (principal, nat64, opt bool) -> (bool);
+   user_tokens: (opt principal) -> (vec nat64) query;
+ };
+type TransferNotification = 
+ record {
+   amount: nat64;
+   from: principal;
+   to: principal;
+   token_id: nat64;
  };
 type Result = 
  variant {
@@ -17,7 +25,11 @@ type Result =
 type Property = 
  record {
    name: text;
-   value: text;
+   value: variant {
+            Bool: bool;
+            Int: int64;
+            Text: text;
+          };
  };
 type Item = 
  record {
