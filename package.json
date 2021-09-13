@@ -1,7 +1,7 @@
 {
-  "name": "drip-unbundler",
+  "name": "drip-land",
   "version": "0.1.0",
-  "description": "Unbundle your IC Drip into individual items.",
+  "description": "Home of the Drip universe.",
   "scripts": {
     "copy:types": "rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/** --exclude='assets/' --exclude='idl/' --exclude='*.wasm' --delete src/declarations"
   }

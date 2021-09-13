@@ -17,7 +17,7 @@ import Nat32Helper "./Nat32";
 import Time "mo:base/Time";
 import TrieSet "mo:base/TrieSet";
 
-shared actor class Unbundler() = this {
+shared actor class Bag() = this {
   // ---- Constants
   let drip : Drip.Self = actor "prees-saaaa-aaaai-qanqa-cai";
 

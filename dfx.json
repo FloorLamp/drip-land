@@ -1,7 +1,7 @@
 {
   "canisters": {
-    "Unbundler": {
-      "main": "src/Unbundler/Unbundler.mo",
+    "Bag": {
+      "main": "src/Bag/Bag.mo",
       "type": "motoko"
     }
   },

@@ -1,0 +1,100 @@
+type TransferNotification = 
+ record {
+   amount: nat64;
+   from: principal;
+   to: principal;
+   token_id: nat64;
+ };
+type StreamingStrategy = variant {
+                           Callback:
+                            record {
+                              callback:
+                               func (StreamingCallbackToken) ->
+                                (StreamingCallbackHttpResponse) query;
+                              token: StreamingCallbackToken;
+                            };};
+type StreamingCallbackToken = 
+ record {
+   content_encoding: text;
+   index: nat;
+   key: text;
+   sha256: opt blob;
+ };
+type StreamingCallbackHttpResponse = 
+ record {
+   body: blob;
+   token: opt StreamingCallbackToken;
+ };
+type Result_2 = 
+ variant {
+   err: text;
+   ok: nat32;
+ };
+type Result_1 = 
+ variant {
+   err: text;
+   ok;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: vec nat32;
+ };
+type Property = 
+ record {
+   name: text;
+   value: variant {
+            Bool: bool;
+            Int: int64;
+            Text: text;
+          };
+ };
+type Item = 
+ record {
+   childOf: opt nat32;
+   children: vec nat32;
+   id: nat32;
+   name: text;
+   owner: principal;
+   properties: vec Property;
+ };
+type HttpResponse = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   status_code: nat16;
+   streaming_strategy: opt StreamingStrategy;
+ };
+type HttpRequest = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   method: text;
+   url: text;
+ };
+type HeaderField = 
+ record {
+   text;
+   text;
+ };
+type BundleRequest = 
+ record {
+   ids: vec nat32;
+   name: text;
+ };
+type Bag = 
+ service {
+   bundle: (BundleRequest) -> (Result_2);
+   data_of: (vec nat32) -> (vec opt Item) query;
+   drips_burned_count: () -> (nat) query;
+   http_request: (HttpRequest) -> (HttpResponse) query;
+   name: () -> (text) query;
+   owner_of: (vec nat32) -> (vec opt principal) query;
+   symbol: () -> (text) query;
+   total_supply: () -> (nat) query;
+   transfer_notification: (TransferNotification) -> (Result_1);
+   transfer_to: (principal, nat32, opt bool) -> (Result_1);
+   unbundle: (nat32) -> (Result);
+   user_tokens: (opt principal) -> (vec nat32) query;
+ };
+service : () -> Bag

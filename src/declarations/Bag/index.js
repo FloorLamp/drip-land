@@ -1,16 +1,16 @@
 import { Actor, HttpAgent } from "@dfinity/agent";
 
 // Imports and re-exports candid interface
-import { idlFactory } from './Unbundler.did.js';
-export { idlFactory } from './Unbundler.did.js';
+import { idlFactory } from './Bag.did.js';
+export { idlFactory } from './Bag.did.js';
 // CANISTER_ID is replaced by webpack based on node environment
-export const canisterId = process.env.UNBUNDLER_CANISTER_ID;
+export const canisterId = process.env.BAG_CANISTER_ID;
 
 /**
  * 
  * @param {string | import("@dfinity/principal").Principal} canisterId Canister ID of Agent
  * @param {{agentOptions?: import("@dfinity/agent").HttpAgentOptions; actorOptions?: import("@dfinity/agent").ActorConfig}} [options]
- * @return {import("@dfinity/agent").ActorSubclass<import("./Unbundler.did.js")._SERVICE>}
+ * @return {import("@dfinity/agent").ActorSubclass<import("./Bag.did.js")._SERVICE>}
  */
  export const createActor = (canisterId, options) => {
   const agent = new HttpAgent({ ...options?.agentOptions });
@@ -32,7 +32,7 @@ export const canisterId = process.env.UNBUNDLER_CANISTER_ID;
 };
   
 /**
- * A ready-to-use agent for the Unbundler canister
- * @type {import("@dfinity/agent").ActorSubclass<import("./Unbundler.did.js")._SERVICE>}
+ * A ready-to-use agent for the Bag canister
+ * @type {import("@dfinity/agent").ActorSubclass<import("./Bag.did.js")._SERVICE>}
  */
- export const Unbundler = createActor(canisterId);
+ export const Bag = createActor(canisterId);
