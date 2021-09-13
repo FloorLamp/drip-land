@@ -2,10 +2,12 @@ import HashMap "mo:base/HashMap";
 
 module {
   public type Item = {
-    id: Nat64;
+    id: Nat32;
     owner: Principal;
     name: Text;
     properties: [Property];
+    children: [Nat32];
+    childOf: ?Nat32;
   };
 
   public type Property = {
@@ -17,13 +19,21 @@ module {
     };
   };
 
-  public type PrincipalToIdsEntry = (Principal, [Nat64]);
-  public type PrincipalToIds = HashMap.HashMap<Principal, [Nat64]>;
+  public type PrincipalToIdsEntry = (Principal, [Nat32]);
+  public type PrincipalToIds = HashMap.HashMap<Principal, [Nat32]>;
+
+  public type IdsToItemEntry = (Nat32, Item);
+  public type IdsToItem = HashMap.HashMap<Nat32, Item>;
+
+  public type BundleRequest = {
+    ids: [Nat32];
+    name: Text;
+  };
 
   public type NotifyService = actor { transfer_notification : shared {
     to : Principal;
-    token_id : Nat64;
+    token_id : Nat32;
     from : Principal;
-    amount : Nat64;
-  } -> async ?Nat64};
+    amount : Nat32;
+  } -> async ?Nat32};
 };
