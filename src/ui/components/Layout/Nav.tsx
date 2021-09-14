@@ -14,9 +14,9 @@ function ActiveLink({
   children,
   href,
   exact = true,
-  className = "px-4 leading-none",
-  linkClassName = "",
-  activeClassName = "flex items-center h-full bg-drip-pink text-white cursor-default",
+  className = "px-4 flex items-center h-full leading-none",
+  linkClassName = "hover:bg-drip-pink transition-colors",
+  activeClassName = "bg-drip-pink text-white cursor-default",
 }) {
   const router = useRouter();
   const active = exact
@@ -42,7 +42,6 @@ export default function Nav() {
   const {
     state: { principal },
   } = useGlobalContext();
-  const router = useRouter();
 
   return (
     <nav className="w-full">
@@ -54,8 +53,8 @@ export default function Nav() {
         </Link>
       </div>
       <div className="border-t-2 border-b-2 border-drip-pink flex justify-center">
-        <div className="w-full sm:max-w-screen-xl px-4 flex justify-between">
-          <div className="flex items-center">
+        <div className="w-full h-8 sm:max-w-screen-xl flex justify-between">
+          <div className="flex">
             <ActiveLink href="/">Home</ActiveLink>
             <ActiveLink href="/bag">Bag</ActiveLink>
             <ActiveLink href="/info">Info</ActiveLink>

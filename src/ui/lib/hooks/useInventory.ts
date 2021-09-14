@@ -30,6 +30,7 @@ export const useInventory = () => {
           properties: [],
           children: [],
           childOf: [],
+          lootData: data,
         };
       });
       const bagItems = (await bag.data_of(bagTokens))

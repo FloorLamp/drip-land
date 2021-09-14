@@ -11,7 +11,7 @@ export default function Home() {
         description={homeDescription}
       />
       <h1 className="text-center text-4xl mt-16 font-logo text-drip-pink">
-        sup drippa'
+        sup fam
       </h1>
     </>
   );
