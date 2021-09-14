@@ -36,7 +36,8 @@ module {
 
   public func renderItemWithChildren(item: T.Item, items: [T.Item]): Text {
     var y = 30;
-    "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 420 " # Nat.toText(30 + (items.size() + 1) * 20) # "'> <style> .base { fill: white; font-family: HelveticaNeue-Bold, Helvetica Neue; font-size: 14px; } </style> <rect width='100%' height='100%'/>" #
+    let height = Nat.max(420, 30 + (items.size() + 1) * 20);
+    "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 420 " # Nat.toText(height) # "'> <style> .base { fill: white; font-family: HelveticaNeue-Bold, Helvetica Neue; font-size: 14px; } </style> <rect width='100%' height='100%'/>" #
     "<text x='10' y='20' class='base'>" # itemName(item) # "</text>" #
     Array.foldLeft<T.Item, Text>(items, "", func (ts, c) {
       y += 20;

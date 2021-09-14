@@ -1,3 +1,5 @@
+import classNames from "classnames";
+import { useRouter } from "next/dist/client/router";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import React from "react";
@@ -8,42 +10,70 @@ const LoginButton = dynamic(() => import("../Buttons/LoginButton"), {
   ssr: false,
 });
 
+function ActiveLink({
+  children,
+  href,
+  exact = true,
+  className = "px-4 leading-none",
+  linkClassName = "",
+  activeClassName = "flex items-center h-full bg-drip-pink text-white cursor-default",
+}) {
+  const router = useRouter();
+  const active = exact
+    ? router.asPath === href
+    : router.asPath.startsWith(href);
+
+  return active ? (
+    <span
+      className={classNames(className, {
+        [activeClassName]: active,
+      })}
+    >
+      {children}
+    </span>
+  ) : (
+    <Link href={href}>
+      <a className={classNames(className, linkClassName)}>{children}</a>
+    </Link>
+  );
+}
+
 export default function Nav() {
   const {
     state: { principal },
   } = useGlobalContext();
+  const router = useRouter();
 
   return (
-    <nav className="py-4 flex flex-col gap-4 items-center justify-between border-b border-black border-opacity-10 text-gray-300">
-      <div className="flex justify-center leading-none">
+    <nav className="w-full">
+      <div className="py-6 flex justify-center leading-none">
         <Link href="/">
           <a>
-            <img src="/img/logo/drip-land-text.svg" className="h-12" />
+            <img src="/img/logo/drip-land-text.svg" className="h-8" />
           </a>
         </Link>
       </div>
-      <div className="w-full flex justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <a className="hover:underline">Home</a>
-          </Link>
-          <Link href="/info">
-            <a className="hover:underline">Info</a>
-          </Link>
-        </div>
-        <div className="flex items-center gap-4">
-          {principal && !principal.isAnonymous() && (
-            <div className="flex flex-col">
-              <IdentifierLabelWithButtons
-                type="Principal"
-                id={principal}
-                isShort={true}
-                showName={false}
-                showButtons={false}
-              />
-            </div>
-          )}
-          <LoginButton />
+      <div className="border-t-2 border-b-2 border-drip-pink flex justify-center">
+        <div className="w-full sm:max-w-screen-xl px-4 flex justify-between">
+          <div className="flex items-center">
+            <ActiveLink href="/">Home</ActiveLink>
+            <ActiveLink href="/bag">Bag</ActiveLink>
+            <ActiveLink href="/info">Info</ActiveLink>
+          </div>
+          <div className="flex items-center gap-4">
+            {principal && !principal.isAnonymous() && (
+              <div className="flex flex-col">
+                <IdentifierLabelWithButtons
+                  type="Principal"
+                  id={principal}
+                  isShort={true}
+                  showName={false}
+                  showButtons={false}
+                />
+              </div>
+            )}
+            <LoginButton />
+          </div>
         </div>
       </div>
     </nav>

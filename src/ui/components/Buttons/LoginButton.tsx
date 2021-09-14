@@ -145,7 +145,7 @@ export default function LoginButton() {
   return (
     <>
       <button
-        className="px-2 py-1 rounded-xl bg-transparent border-2 border-white opacity-70 hover:opacity-100 transition-opacity"
+        className="px-3 py-2 bg-drip-pink text-black opacity-70 hover:opacity-100 transition-opacity"
         onClick={isAuthed ? handleLogout : openModal}
       >
         {isAuthed ? "Logout" : "Login"}
@@ -222,13 +222,13 @@ export default function LoginButton() {
                 <img src="/img/vendor/stoic.png" className="w-4 mr-2" /> Stoic
               </button>
 
-              <button
+              {/* <button
                 className="flex items-center px-3 py-2 rounded-lg bg-white border-gray-300 border-2 hover:ring-2 hover:ring-opacity-50 hover:ring-indigo-500 hover:border-indigo-500"
                 onClick={() => setShowIILogin(!showIILogin)}
               >
                 <img src="/img/vendor/dfinity.png" className="w-4 mr-2" />{" "}
                 Internet Identity
-              </button>
+              </button> */}
             </>
           )}
         </div>

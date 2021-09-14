@@ -10,7 +10,7 @@ export default function InfoPage() {
     <>
       <div className="py-8">
         <MetaTags title="Info" image="hero" description={homeDescription} />
-        <Panel className="w-full p-8 flex flex-col gap-6">
+        <Panel className="w-full p-8 flex flex-col gap-6 text-black">
           <div className="flex flex-col gap-4">
             <h1 className="text-3xl">Welcome to drip.land</h1>
             <div>
