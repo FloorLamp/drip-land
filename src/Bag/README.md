@@ -85,7 +85,7 @@ type Result =
 unbundle: (nat32) -> (Result);
 ```
 
-Destroy parent item and return children to owner.
+Destroy parent item and set children's owner back to owner.
 
 ## Queries
 

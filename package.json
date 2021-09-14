@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "description": "Home of the Drip universe.",
   "scripts": {
-    "copy:types": "rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/** --exclude='assets/' --exclude='idl/' --exclude='*.wasm' --delete src/declarations"
+    "copy:types": "rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/** --exclude='assets/' --exclude='heartbeat/' --exclude='idl/' --exclude='*.wasm' --exclude='index.js' --delete src/ui/declarations"
   }
 }

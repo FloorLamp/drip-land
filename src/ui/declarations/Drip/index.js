@@ -1,8 +1,6 @@
 import { Actor } from "@dfinity/agent";
-
-// Imports and re-exports candid interface
 import { idlFactory } from "./Drip.did.js";
-export { idlFactory } from "./Drip.did.js";
+
 export const canisterId = process.env.DRIP_CANISTER_ID;
 
 /**

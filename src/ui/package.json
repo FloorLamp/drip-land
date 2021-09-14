@@ -1,0 +1,48 @@
+{
+  "name": "drip.land",
+  "description": "The Land of Drip",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "PORT=42069 next dev",
+    "build": "next build",
+    "start": "PORT=42069 next start",
+    "export": "next export",
+    "copy:types": "rsync -avr ../../.dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/** --exclude='assets/' --exclude='heartbeat/' --exclude='idl/' --exclude='*.wasm' --exclude='index.js' --delete declarations"
+  },
+  "dependencies": {
+    "@dfinity/agent": "^0.9.3",
+    "@dfinity/auth-client": "^0.9.3",
+    "@dfinity/authentication": "^0.9.3",
+    "@dfinity/candid": "^0.9.3",
+    "@dfinity/principal": "^0.9.3",
+    "@headlessui/react": "^1.4.0",
+    "@psychedelic/plug-connect": "^0.1.3",
+    "classnames": "^2.3.1",
+    "ic-stoic-identity": "^1.4.0",
+    "luxon": "^2.0.1",
+    "next": "^11.1.2",
+    "node-fetch": "^2.6.1",
+    "object-path-immutable": "^4.1.1",
+    "protobufjs": "^6.11.2",
+    "react": "^17.0.2",
+    "react-dom": "17.0.2",
+    "react-icons": "^4.2.0",
+    "react-query": "^3.19.0",
+    "react-select": "^4.3.1",
+    "use-clipboard-copy": "^0.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.3.3",
+    "@types/classnames": "^2.3.1",
+    "@types/cors": "^2.8.12",
+    "@types/luxon": "^1.27.1",
+    "@types/node-fetch": "^2.5.12",
+    "@types/react": "^17.0.14",
+    "@types/react-select": "^4.0.17",
+    "autoprefixer": "^10.3.1",
+    "postcss": "^8.3.5",
+    "tailwindcss": "^2.2.15",
+    "typescript": "^4.4.3"
+  }
+}

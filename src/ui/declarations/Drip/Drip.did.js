@@ -1,4 +1,4 @@
-export default ({ IDL }) => {
+export const idlFactory = ({ IDL }) => {
   const ClaimResult = IDL.Variant({ Ok: IDL.Nat64, Err: IDL.Text });
   const LootData = IDL.Record({
     name: IDL.Text,

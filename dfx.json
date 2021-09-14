@@ -3,6 +3,10 @@
     "Bag": {
       "main": "src/Bag/Bag.mo",
       "type": "motoko"
+    },
+    "BagStaging": {
+      "main": "src/Bag/Bag.mo",
+      "type": "motoko"
     }
   },
   "defaults": {
