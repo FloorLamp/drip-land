@@ -40,7 +40,7 @@ function ActiveLink({
 
 export default function Nav() {
   const {
-    state: { principal },
+    state: { principal, isAuthed },
   } = useGlobalContext();
 
   return (
@@ -56,7 +56,7 @@ export default function Nav() {
         <div className="w-full h-8 sm:max-w-screen-xl flex justify-between">
           <div className="flex">
             <ActiveLink href="/">Home</ActiveLink>
-            <ActiveLink href="/bag">Bag</ActiveLink>
+            {isAuthed && <ActiveLink href="/bag">Bag</ActiveLink>}
             <ActiveLink href="/info">Info</ActiveLink>
           </div>
           <div className="flex items-center gap-4">

@@ -201,7 +201,7 @@ export default function LoginButton() {
                   className="flex-1 flex justify-center items-center px-3 py-2 rounded-lg bg-white border-gray-300 border-2 hover:ring-2 hover:ring-opacity-50 hover:ring-indigo-500 hover:border-indigo-500"
                   onClick={handleStoicLogin}
                 >
-                  <img src="/img/stoic.png" className="w-4 mr-2" /> Login
+                  <img src="/img/vendor/stoic.png" className="w-4 mr-2" /> Login
                 </button>
               </div>
             </div>

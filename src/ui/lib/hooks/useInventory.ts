@@ -49,7 +49,6 @@ export const useInventory = () => {
     },
     {
       enabled: !!principal && !principal.isAnonymous(),
-      placeholderData: [],
       keepPreviousData: true,
       refetchInterval: ONE_MINUTES_MS,
     }

@@ -11,21 +11,23 @@ const MINIMUM_ITEMS = 8;
 
 export function Inventory() {
   const inventory = useInventory();
+
   const count = inventory.data?.length;
   const [selectedItem, setSelectedItem] = useState<TypedItem>(null);
 
   return (
-    <div className="flex flex-col-reverse md:flex-row py-4">
+    <div className="w-full flex flex-col-reverse md:flex-row py-4">
       <div>
         <div className="py-4">
-          My Bag ({count} {pluralize("item", count)})
+          My Bag
+          {inventory.isSuccess && ` (${count} ${pluralize("item", count)})`}
           {inventory.isFetching && (
             <AiOutlineLoading className="ml-2 inline-block animate-spin" />
           )}
         </div>
         <div className="flex flex-wrap items-stretch gap-4">
           {!inventory.isSuccess ? (
-            <div className="text-white text-center">
+            <div className="w-full text-white text-center">
               Getting your things together...
             </div>
           ) : (
@@ -38,7 +40,7 @@ export function Inventory() {
                     className={classNames(
                       "w-32 h-32 border-2 border-black bg-black hover:ring-2 ring-pink-500 cursor-pointer",
                       {
-                        "ring-2 ring-pink-500": selectedItem.id === item.id,
+                        "ring-2 ring-pink-500": selectedItem?.id === item.id,
                       }
                     )}
                     onClick={() => setSelectedItem(item)}
