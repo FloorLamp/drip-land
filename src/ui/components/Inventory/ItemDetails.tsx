@@ -5,6 +5,7 @@ import { useUnwrap } from "../../lib/hooks/useUnwrap";
 import { TypedItem } from "../../lib/types";
 import { bagUrl, dripUrl } from "../../lib/url";
 import SpinnerButton from "../Buttons/SpinnerButton";
+import TransferModal from "./TransferModal";
 
 export function getPropertyValue({ name, item }: { name: string; item: Item }) {
   const value = item.properties.find((prop) => prop.name === name)?.value;
@@ -31,7 +32,7 @@ export function ItemDetails({ item }: { item: TypedItem }) {
   };
 
   return (
-    <div>
+    <div className="">
       <div className="w-64 h-64 bg-black">
         <img
           key={item.id}
@@ -51,7 +52,7 @@ export function ItemDetails({ item }: { item: TypedItem }) {
           ? item.lootData?.map((data) => {
               return (
                 <li key={data.slot}>
-                  <label className="px-1 py-0.5 text-xs uppercase bg-gray-600 rounded-md">
+                  <label className="px-1 py-0.5 text-xs uppercase bg-drip-purple-500 text-drip-purple-100">
                     {data.slot === "weapon" ? "Hand" : data.slot}
                   </label>{" "}
                   {!!data.name_prefix && `"${data.name_prefix}" `}
@@ -75,7 +76,7 @@ export function ItemDetails({ item }: { item: TypedItem }) {
               const special = getPropertyValue({ name: "special", item });
               return (
                 <li key={item.id}>
-                  <label className="px-1 py-0.5 text-xs uppercase bg-gray-600 rounded-md">
+                  <label className="px-1 py-0.5 text-xs uppercase bg-drip-purple-500 text-drip-purple-100">
                     {getPropertyValue({ name: "slot", item })}
                   </label>{" "}
                   {!!name_prefix && `"${name_prefix}" `}
@@ -87,19 +88,25 @@ export function ItemDetails({ item }: { item: TypedItem }) {
               );
             })}
       </ul>
-      <ul>
-        <li>
+
+      <div className="border-t border-drip-purple-500 mt-4 pt-4 pb-2">
+        <ul className="flex flex-row-wrap gap-2">
+          <li>
+            <TransferModal item={item} />
+          </li>
           {item.extWrapped && (
-            <SpinnerButton
-              className="bg-drip-pink w-24 py-2 rounded-md"
-              onClick={handleUnwrap}
-              isLoading={unwrap.isLoading}
-            >
-              Unwrap
-            </SpinnerButton>
+            <li>
+              <SpinnerButton
+                activeClassName="btn-inventory"
+                onClick={handleUnwrap}
+                isLoading={unwrap.isLoading}
+              >
+                Unwrap
+              </SpinnerButton>
+            </li>
           )}
-        </li>
-      </ul>
+        </ul>
+      </div>
     </div>
   );
 }

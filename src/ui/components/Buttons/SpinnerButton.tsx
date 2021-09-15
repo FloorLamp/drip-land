@@ -6,8 +6,8 @@ const SpinnerButton = ({
   isLoading,
   isDisabled,
   className,
-  activeClassName = "btn-secondary",
-  disabledClassName = "btn-secondary-disabled",
+  activeClassName = "btn-primary",
+  disabledClassName = "btn-primary-disabled",
   onClick,
   children,
   title,
@@ -26,7 +26,7 @@ const SpinnerButton = ({
     <button
       onClick={onClick}
       className={classNames(
-        "rounded-sm leading-none inline-flex items-center justify-center",
+        "leading-none inline-flex items-center justify-center",
         {
           [activeClassName]: !disabled,
           [disabledClassName]: disabled,

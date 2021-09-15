@@ -28,9 +28,9 @@ export default function App({ Component, pageProps }) {
         <Head>
           <title>Cubic</title>
         </Head>
-        <div className="flex flex-col items-center bg-drip-purple text-white min-h-screen">
+        <div className="flex flex-col items-center bg-drip-purple-500 text-white min-h-screen">
           <Nav />
-          <main className="flex flex-col justify-start items-center w-full sm:max-w-screen-xl px-4">
+          <main className="flex flex-col justify-start items-center w-full sm:max-w-screen-xl">
             <Component {...pageProps} />
           </main>
         </div>

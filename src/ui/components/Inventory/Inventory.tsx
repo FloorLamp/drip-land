@@ -25,16 +25,16 @@ export function Inventory() {
   }, [inventory.data]);
 
   return (
-    <div className="w-full flex flex-col-reverse md:flex-row py-4">
-      <div>
-        <div className="py-4">
+    <div className="w-full flex flex-col-reverse sm:flex-row">
+      <div className="p-4">
+        <div>
           My Bag
           {inventory.isSuccess && ` (${count} ${pluralize("item", count)})`}
           {inventory.isFetching && (
             <AiOutlineLoading className="ml-2 inline-block animate-spin" />
           )}
         </div>
-        <div className="flex flex-wrap items-stretch gap-4">
+        <div className="mt-2 flex flex-wrap items-stretch gap-4">
           {!inventory.isSuccess ? (
             <div className="w-full text-white text-center">
               Getting your things together...
@@ -77,7 +77,7 @@ export function Inventory() {
         </div>
       </div>
 
-      <div className="flex-none w-72 p-4">
+      <div className="w-full sm:flex-none sm:w-72 p-4 bg-drip-purple-400 shadow-md">
         <div>{selectedItem && <ItemDetails item={selectedItem} />}</div>
       </div>
     </div>

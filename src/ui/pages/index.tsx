@@ -10,7 +10,7 @@ export default function Home() {
         image="hero"
         description={homeDescription}
       />
-      <h1 className="text-center text-4xl mt-16 font-logo text-drip-pink">
+      <h1 className="text-center text-4xl mt-16 font-logo text-drip-pink-400">
         sup fam
       </h1>
     </>

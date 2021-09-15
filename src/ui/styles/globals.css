@@ -33,15 +33,22 @@ input[type="checkbox"] {
   @apply border-gray-300 focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 focus:outline-none rounded-sm;
 }
 
-.btn-cta {
-  @apply bg-drip-pink text-white hover:bg-blue-600 transition-colors;
-}
-.btn-cta-disabled {
-  @apply bg-drip-pink text-white opacity-50;
-}
-.btn-secondary {
-  @apply bg-blue-200 hover:bg-blue-100 transition-colors text-blue-800;
-}
-.btn-secondary-disabled {
-  @apply bg-blue-100 text-blue-300;
+@layer components {
+  .btn-primary {
+    @apply bg-drip-pink-400 text-white hover:bg-drip-pink-300 transition-colors leading-none;
+  }
+  .btn-primary-disabled {
+    @apply bg-drip-pink-400 text-white opacity-50;
+  }
+
+  .btn-secondary {
+    @apply bg-drip-pink-200 hover:bg-drip-pink-100 transition-colors text-drip-pink-800 leading-none;
+  }
+  .btn-secondary-disabled {
+    @apply bg-drip-pink-100 text-drip-pink-300;
+  }
+
+  .btn-inventory {
+    @apply w-24 py-2 btn-primary;
+  }
 }

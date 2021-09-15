@@ -147,7 +147,7 @@ export default function LoginButton() {
   return (
     <>
       <button
-        className="px-3 h-full hover:bg-drip-pink transition-colors"
+        className="px-3 h-full hover:bg-drip-pink-400 transition-colors"
         onClick={isAuthed ? handleLogout : openModal}
       >
         {isAuthed ? "Logout" : "Login"}
