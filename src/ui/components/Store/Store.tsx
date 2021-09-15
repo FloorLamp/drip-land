@@ -1,11 +1,14 @@
-import { HttpAgent } from "@dfinity/agent";
+import { ActorSubclass, HttpAgent } from "@dfinity/agent";
 import { Principal } from "@dfinity/principal";
 import { DateTime } from "luxon";
 import React, { createContext, useContext, useReducer } from "react";
+import BagService from "../../declarations/Bag/Bag.did";
 import * as Bag from "../../declarations/Bag/index";
+import DripService from "../../declarations/Drip/Drip.did";
 import * as Drip from "../../declarations/Drip/index";
+import * as Wrapper from "../../declarations/Wrapper/index";
+import WrapperService from "../../declarations/Wrapper/Wrapper.did";
 import { defaultAgent } from "../../lib/canisters";
-import { BagService, DripService } from "../../lib/types";
 import {
   NewNotification,
   NotificationType,
@@ -13,18 +16,24 @@ import {
 
 export type State = {
   agent: HttpAgent;
-  drip: DripService;
-  bag: BagService;
+  drip: ActorSubclass<DripService>;
+  bag: ActorSubclass<BagService._SERVICE>;
+  wrapper: ActorSubclass<WrapperService>;
   isAuthed: boolean;
   principal: Principal | null;
   showLoginModal: boolean;
   notifications: NotificationType[];
 };
 
+const createActors = (agent: HttpAgent = defaultAgent) => ({
+  drip: Drip.createActor(agent),
+  bag: Bag.createActor(agent),
+  wrapper: Wrapper.createActor(agent),
+});
+
 const initialState: State = {
+  ...createActors(),
   agent: defaultAgent,
-  drip: Drip.createActor(defaultAgent),
-  bag: Bag.createActor(defaultAgent),
   isAuthed: false,
   principal: null,
   showLoginModal: false,
@@ -63,9 +72,8 @@ const reducer = (state: State, action: Action): State => {
       const agent = action.agent || defaultAgent;
       return {
         ...state,
+        ...createActors(agent),
         agent,
-        drip: Drip.createActor(agent),
-        bag: Bag.createActor(agent),
         isAuthed: !!action.isAuthed,
       };
     case "SET_PRINCIPAL":
@@ -136,6 +144,10 @@ export const useDrip = () => {
 export const useBag = () => {
   const context = useGlobalContext();
   return context.state.bag;
+};
+export const useWrapper = () => {
+  const context = useGlobalContext();
+  return context.state.wrapper;
 };
 
 export const useNotifications = () => {

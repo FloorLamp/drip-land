@@ -3,7 +3,9 @@ import {
   useBag,
   useDrip,
   useGlobalContext,
+  useWrapper,
 } from "../../components/Store/Store";
+import { firstAccountOfPrincipal } from "../accounts";
 import { ONE_MINUTES_MS } from "../constants";
 import { TypedItem } from "../types";
 
@@ -13,32 +15,45 @@ export const useInventory = () => {
   } = useGlobalContext();
   const drip = useDrip();
   const bag = useBag();
+  const wrapper = useWrapper();
 
   return useQuery(
     "inventory",
     async () => {
-      const dripTokens = await drip.user_tokens(principal);
-      const bagTokens = await bag.user_tokens([]);
-      const dripItems: TypedItem[] = (
-        await drip.data_of_many({ List: dripTokens })
-      ).map(([id, data]) => {
+      const [dripTokens, bagTokens, wrappedTokens] = await Promise.all([
+        drip.user_tokens(principal),
+        bag.user_tokens([]),
+        wrapper.tokens(firstAccountOfPrincipal(principal)),
+      ]);
+      const wrappedTokenIds = "ok" in wrappedTokens ? wrappedTokens.ok : [];
+      console.log(wrappedTokenIds);
+
+      const [rawDripItems, rawBagItems] = await Promise.all([
+        drip.data_of_many({
+          List: dripTokens.concat(wrappedTokenIds.map(BigInt)),
+        }),
+        bag.data_of(bagTokens),
+      ]);
+      console.log(rawDripItems);
+
+      const dripItems: TypedItem[] = rawDripItems.map(([id_, data]) => {
+        const id = Number(id_);
         return {
+          id,
           type: "Drip",
-          id: Number(id),
           owner: principal,
           name: `Drip ${id}`,
           properties: [],
           children: [],
           childOf: [],
           lootData: data,
+          extWrapped: wrappedTokenIds.includes(id),
         };
       });
-      const bagItems = (await bag.data_of(bagTokens))
-        .map((item) => {
+      const bagItems = rawBagItems
+        .map((item, i) => {
           if (!item[0]) {
-            console.error(
-              `bag: got ${bagTokens.length} items, want ${bagItems.length}`
-            );
+            console.error(`bag: missing item ${bagTokens[i]}`);
             return false;
           }
 

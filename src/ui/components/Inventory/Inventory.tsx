@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import { useInventory } from "../../lib/hooks/useInventory";
 import { TypedItem } from "../../lib/types";
@@ -14,6 +14,15 @@ export function Inventory() {
 
   const count = inventory.data?.length;
   const [selectedItem, setSelectedItem] = useState<TypedItem>(null);
+
+  useEffect(() => {
+    if (selectedItem) {
+      const newSelectedItem = inventory.data.find(
+        ({ id }) => id === selectedItem.id
+      );
+      setSelectedItem(newSelectedItem);
+    }
+  }, [inventory.data]);
 
   return (
     <div className="w-full flex flex-col-reverse md:flex-row py-4">
@@ -38,7 +47,7 @@ export function Inventory() {
                   <div
                     key={i}
                     className={classNames(
-                      "w-32 h-32 border-2 border-black bg-black hover:ring-2 ring-pink-500 cursor-pointer",
+                      "relative w-32 h-32 border-2 border-black bg-black hover:ring-2 ring-pink-500 cursor-pointer",
                       {
                         "ring-2 ring-pink-500": selectedItem?.id === item.id,
                       }
@@ -50,6 +59,11 @@ export function Inventory() {
                         item.type === "Bag" ? bagUrl(item.id) : dripUrl(item.id)
                       }
                     />
+                    {item.extWrapped && (
+                      <div className="absolute bg-green-800 opacity-70 right-0 bottom-0 px-2 py-1 text-xs uppercase">
+                        Wrapped
+                      </div>
+                    )}
                   </div>
                 );
               }

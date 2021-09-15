@@ -5,6 +5,7 @@ import { StoicIdentity } from "ic-stoic-identity";
 import React, { useEffect, useState } from "react";
 import { canisterId as BagCanisterId } from "../../declarations/Bag";
 import { canisterId as DripCanisterId } from "../../declarations/Drip";
+import { canisterId as WrapperCanisterId } from "../../declarations/Wrapper";
 import { HOST, IDENTITY_PROVIDER } from "../../lib/canisters";
 import { ONE_WEEK_NS } from "../../lib/constants";
 import Modal from "../Layout/Modal";
@@ -47,7 +48,9 @@ declare global {
   }
 }
 
-const WHITELIST = [BagCanisterId, DripCanisterId].filter(Boolean);
+const WHITELIST = [BagCanisterId, DripCanisterId, WrapperCanisterId].filter(
+  Boolean
+);
 
 export default function LoginButton() {
   const [isOpen, setIsOpen] = useLoginModal();
