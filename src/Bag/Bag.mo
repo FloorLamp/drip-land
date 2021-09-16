@@ -23,39 +23,38 @@ shared actor class Bag() = this {
 
 
   // ---- State
-  var ledger: T.PrincipalToIds = HashMap.HashMap<Principal, [Nat32]>(1, Principal.equal, Principal.hash);
-  stable var ledgerEntries: [T.PrincipalToIdsEntry] = [];
+  var ledger: T.PrincipalToPlayerData = HashMap.HashMap<Principal, T.PlayerData>(1, Principal.equal, Principal.hash);
+  stable var ledgerEntries: [T.PrincipalToPlayerDataEntry] = [];
 
   stable var nextItemId : Nat32 = 0;
-  stable var allItemEntries: [T.IdsToItemEntry] = [];
   var allItems: T.IdsToItem = HashMap.HashMap<Nat32, T.Item>(1, Nat32.equal, Nat32Helper.id);
+  stable var allItemEntries: [T.IdsToItemEntry] = [];
 
-  stable var dripsBurned: [(Principal, Nat32)] = [];
-
+  stable var dripsBurned : Nat = 0;
 
   // ---- Queries
 
   public query func name() : async Text {
-    "IC_DRIP Item"
+    "DRIP.LAND"
   };
 
   public query func symbol() : async Text {
-    "IC_DRIP_ITEM"
+    "DRIP.LAND"
   };
 
-  public query func drips_burned_count() : async Nat {
-    dripsBurned.size()
+  public query func dripsBurnedCount() : async Nat {
+    dripsBurned
   };
 
-  public query func total_supply() : async Nat {
+  public query func totalSupply() : async Nat {
     allItems.size()
   };
 
-  public query({caller}) func user_tokens(user: ?Principal) : async [Nat32] {
-    Option.get(ledger.get(Option.get(user, caller)), [])
+  public query({caller}) func userTokens(user: ?Principal) : async [Nat32] {
+    inventoryOf(Option.get(user, caller))
   };
 
-  public query func owner_of(ids: [Nat32]) : async [?Principal] {
+  public query func ownerOf(ids: [Nat32]) : async [?Principal] {
     Array.map<Nat32, ?Principal>(ids, func (i) {
       switch (allItems.get(i)) {
         case (?{owner}) { ?owner };
@@ -64,7 +63,7 @@ shared actor class Bag() = this {
     })
   };
 
-  public query func data_of(ids: [Nat32]) : async [?T.Item] {
+  public query func dataOf(ids: [Nat32]) : async [?T.Item] {
     Array.map<Nat32, ?T.Item>(ids, func (i) { allItems.get(i) })
   };
 
@@ -98,7 +97,19 @@ shared actor class Bag() = this {
     };
   };
 
+  public query({caller}) func playerData(user: ?Principal): async ?T.PlayerData {
+    ledger.get(Option.get(user, caller))
+  };
+
   // ---- Updates
+
+  /*
+    Equip an Item
+  */
+  public shared({caller}) func equip(ids: [Nat32]) : async Result.Result<(), Text> {
+    // TODO
+    #ok()
+  };
 
   /*
     Create a new item from a set of items.
@@ -106,15 +117,15 @@ shared actor class Bag() = this {
     Bundles can contain other bundles.
   */
   public shared({caller}) func bundle(request: T.BundleRequest) : async Result.Result<Nat32, Text> {
-    let uniqueIds = TrieSet.toArray(TrieSet.fromArray(request.ids, Nat32Helper.id, Nat32.equal));
+    let uniqueIds = uniq(request.ids);
     if (uniqueIds.size() < 2) {
       return #err("Bundle must include 2 or more items!");
     };
 
-    let ownerTokenIds = Option.get(ledger.get(caller), []);
+    let inventory = inventoryOf(caller);
 
     let children = Array.mapFilter<Nat32, (Nat32, T.Item)>(uniqueIds, func (id) {
-      switch (allItems.get(id), Array.find<Nat32>(ownerTokenIds, func (i) { i == id })) {
+      switch (allItems.get(id), Array.find<Nat32>(inventory, func (i) { i == id })) {
         case (?item, ?_) {
           assert(Option.isNull(item.childOf));
           ?(id, item)
@@ -135,11 +146,13 @@ shared actor class Bag() = this {
       properties = [];
       children = uniqueIds;
       childOf = null;
+      state = null;
+      dripProperties = null;
     });
 
     // Add to owner ledger
-    ledger.put(caller, Array.append(
-      Array.filter<Nat32>(ownerTokenIds, func (i) { not Nat32Helper.contains(uniqueIds, i) }),
+    updateInventory(caller, Array.append(
+      Array.filter<Nat32>(inventory, func (i) { not Nat32Helper.contains(uniqueIds, i) }),
       [newId]
     ));
 
@@ -152,6 +165,8 @@ shared actor class Bag() = this {
         properties = item.properties;
         children = item.children;
         childOf = ?newId;
+        state = null;
+        dripProperties = null;
       })
     };
 
@@ -164,8 +179,9 @@ shared actor class Bag() = this {
     Destroy a bundle for its constituents
   */
   public shared({caller}) func unbundle(id: Nat32) : async Result.Result<[Nat32], Text> {
-    let ownerTokenIds = Option.get(ledger.get(caller), []);
-    if (Array.find<Nat32>(ownerTokenIds, func (i) { i == id }) == null) {
+    let inventory = inventoryOf(caller);
+
+    if (Array.find<Nat32>(inventory, func (i) { i == id }) == null) {
       return #err("Token " # Nat32.toText(id) # " not found!")
     };
     switch (allItems.get(id)) {
@@ -192,6 +208,8 @@ shared actor class Bag() = this {
               properties = item.properties;
               children = item.children;
               childOf = null;
+              state = null;
+              dripProperties = null;
             });
             id
           };
@@ -201,8 +219,8 @@ shared actor class Bag() = this {
         ignore allItems.remove(id);
 
         // Add to owner ledger
-        ledger.put(caller, Array.append(
-          Array.filter<Nat32>(ownerTokenIds, func (i) { i != id }),
+        updateInventory(caller, Array.append(
+          Array.filter<Nat32>(inventory, func (i) { i != id }),
           childrenIds
         ));
         #ok(childrenIds)
@@ -211,13 +229,12 @@ shared actor class Bag() = this {
         #err("Token " # Nat32.toText(id) # " not found!")
       }
     };
-
   };
 
-  public shared({caller}) func transfer_to(receiver: Principal, id: Nat32, notify: ?Bool) : async Result.Result<(), Text> {
-    let senderTokenIds = Option.get(ledger.get(caller), []);
+  public shared({caller}) func transferTo(receiver: Principal, id: Nat32, notify: ?Bool) : async Result.Result<(), Text> {
+    let senderInventory = inventoryOf(caller);
 
-    switch (allItems.get(id), Array.find<Nat32>(senderTokenIds, func (i) { i == id })) {
+    switch (allItems.get(id), Array.find<Nat32>(senderInventory, func (i) { i == id })) {
       case (?item, ?_) {
         switch (item.childOf) {
           case (?parentId) {
@@ -227,9 +244,9 @@ shared actor class Bag() = this {
         };
 
         // Move to receiver ledger
-        let receiverTokenIds = Option.get(ledger.get(receiver), []);
-        ledger.put(caller, Array.filter<Nat32>(senderTokenIds, func (i) { i != id }));
-        ledger.put(receiver, Array.append(receiverTokenIds, [id]));
+        let receiverInventory = inventoryOf(receiver);
+        updateInventory(caller, Array.filter<Nat32>(senderInventory, func (i) { i != id }));
+        updateInventory(receiver, Array.append(receiverInventory, [id]));
 
         // Set new owner
         allItems.put(id, {
@@ -239,6 +256,8 @@ shared actor class Bag() = this {
           properties = item.properties;
           children = item.children;
           childOf = item.childOf;
+          state = null;
+          dripProperties = null;
         });
 
         if (notify == ?true) {
@@ -272,54 +291,109 @@ shared actor class Bag() = this {
     Debug.print("transfer_notification " # debug_show({to; from; token_id; amount}));
     assert(caller == Principal.fromActor(drip) and to == thisPrincipal());
 
-    // Send to burn address
-    if (not (await drip.transfer_to(Principal.fromText("aaaaa-aa"), token_id))) {
-      return #err("Burn failed!");
-    };
-
-    dripsBurned := Array.append(dripsBurned, [(from, Nat32.fromNat(Nat64.toNat(token_id)))]);
-
-    // Create new constituent items
+    // Fetch data
     let data = await drip.data_of(token_id);
-    let count = data.size();
-    let idx = nextItemId;
-    let newItemIds = Array.tabulate<Nat32>(count, func (i) {
-      let id = Nat32.fromNat(i) + idx;
-      let item = {
-        id = id;
-        name = data[i].name;
-        owner = from;
-        properties = [{
-          name = "slot";
-          value = #Text(switch (data[i].slot) {
-            case "weapon" { "hand" };
-            case t { t };
-          });
-        }, {
-          name = "prefix";
-          value = #Text(data[i].prefix);
-        }, {
-          name = "name_prefix";
-          value = #Text(data[i].name_prefix);
-        }, {
-          name = "name_suffix";
-          value = #Text(data[i].name_suffix);
-        }, {
-          name = "special";
-          value = #Bool(data[i].special);
-        }];
-        children = [];
-        childOf = null;
+
+    let memo = "equip";
+    switch(memo) {
+      case "unbundle" {
+        // Create constituents
+        let count = data.size();
+        let idx = nextItemId;
+        let newItemIds = Array.tabulate<Nat32>(count, func (i) {
+          let id = Nat32.fromNat(i) + idx;
+          let item = {
+            id = id;
+            name = data[i].name;
+            owner = from;
+            properties = [{
+              name = "slot";
+              value = #Text(switch (data[i].slot) {
+                case "weapon" { "hand" };
+                case t { t };
+              });
+            }, {
+              name = "prefix";
+              value = #Text(data[i].prefix);
+            }, {
+              name = "name_prefix";
+              value = #Text(data[i].name_prefix);
+            }, {
+              name = "name_suffix";
+              value = #Text(data[i].name_suffix);
+            }, {
+              name = "special";
+              value = #Bool(data[i].special);
+            }];
+            children = [];
+            childOf = null;
+            state = null;
+            dripProperties = null;
+          };
+          allItems.put(id, item);
+          id
+        });
+
+        nextItemId += Nat32.fromNat(count);
+
+        // Add to item ledger
+        let newId = nextItemId;
+        allItems.put(newId, {
+          id = newId;
+          dripProperties = ?{
+            id = Nat32.fromNat(Nat64.toNat(token_id));
+            isBurned = true;
+          };
+          name = "Drip " # Nat64.toText(token_id);
+          owner = thisPrincipal();
+          properties = [];
+          children = newItemIds;
+          childOf = null;
+          state = null;
+        });
+        nextItemId += 1;
+        dripsBurned += 1;
+
+        // Add to receiver ledger
+        let receiverInventory = inventoryOf(from);
+        updateInventory(from, Array.append(receiverInventory, newItemIds));
       };
-      allItems.put(id, item);
-      id
-    });
+      case "equip" {
+        // Add to item ledger
+        let newId = nextItemId;
+        allItems.put(newId, {
+          id = newId;
+          dripProperties = ?{
+            id = Nat32.fromNat(Nat64.toNat(token_id));
+            isBurned = false;
+          };
+          name = "Drip " # Nat64.toText(token_id);
+          owner = from;
+          properties = [];
+          children = [];
+          childOf = null;
+          state = null;
+        });
+        nextItemId += 1;
 
-    nextItemId += Nat32.fromNat(count);
-
-    // Add to receiver ledger
-    let receiverTokenIds = Option.get(ledger.get(from), []);
-    ledger.put(from, Array.append(receiverTokenIds, newItemIds));
+        // Add to receiver ledger
+        let playerData = Option.get(ledger.get(from), {
+          name = "";
+          equipped = #bundle(?newId);
+          inventory = [];
+          status = [];
+        });
+        ledger.put(from, {
+          name = playerData.name;
+          equipped = playerData.equipped;
+          status = playerData.status;
+          inventory = Array.append(playerData.inventory, [newId])
+        });
+      };
+      case _ {
+        return #err("Invalid memo");
+      }
+    };
 
     #ok(())
   };
@@ -333,7 +407,7 @@ shared actor class Bag() = this {
   };
 
   system func postupgrade() {
-    ledger := HashMap.fromIter<Principal, [Nat32]>(ledgerEntries.vals(), ledgerEntries.size(), Principal.equal, Principal.hash);
+    ledger := HashMap.fromIter<Principal, T.PlayerData>(ledgerEntries.vals(), ledgerEntries.size(), Principal.equal, Principal.hash);
     allItems := HashMap.fromIter<Nat32, T.Item>(allItemEntries.vals(), allItemEntries.size(), Nat32.equal, Nat32Helper.id);
   };
 
@@ -341,4 +415,30 @@ shared actor class Bag() = this {
   // ---- Helpers
 
   func thisPrincipal(): Principal { Principal.fromActor(this) };
+
+  func uniq(ids: [Nat32]): [Nat32] {
+    TrieSet.toArray(TrieSet.fromArray(ids, Nat32Helper.id, Nat32.equal))
+  };
+
+  func inventoryOf(user: Principal): [Nat32] {
+    switch (ledger.get(user)) {
+      case (?{inventory}) { inventory };
+      case _ { [] }
+    }
+  };
+
+  func updateInventory(user: Principal, inventory: [Nat32]): () {
+    let data = Option.get(ledger.get(user), {
+      name = "";
+      equipped = #bundle(null);
+      inventory = [];
+      status = [];
+    });
+    ledger.put(user, {
+      name = data.name;
+      equipped = data.equipped;
+      status = data.status;
+      inventory = inventory
+    });
+  };
 };

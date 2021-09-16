@@ -2,7 +2,6 @@ type TransferNotification =
  record {
    amount: nat64;
    from: principal;
-   memo: blob;
    to: principal;
    token_id: nat64;
  };
@@ -50,46 +49,14 @@ type Property =
             Text: text;
           };
  };
-type PlayerStatus = record {};
-type PlayerData = 
- record {
-   equipped:
-    variant {
-      bundle: opt nat32;
-      items:
-       record {
-         accessory: opt nat32;
-         foot: opt nat32;
-         hand: opt nat32;
-         head: opt nat32;
-         pants: opt nat32;
-         shirt: opt nat32;
-         underwear: opt nat32;
-         waist: opt nat32;
-       };
-    };
-   inventory: vec nat32;
-   name: text;
-   status: vec PlayerStatus;
- };
-type ItemState = 
- variant {
-   equipped;
-   none;
- };
 type Item = 
  record {
    childOf: opt nat32;
    children: vec nat32;
-   dripProperties: opt record {
-                         id: nat32;
-                         isBurned: bool;
-                       };
    id: nat32;
    name: text;
    owner: principal;
    properties: vec Property;
-   state: opt ItemState;
  };
 type HttpResponse = 
  record {
@@ -118,18 +85,16 @@ type BundleRequest =
 type Bag = 
  service {
    bundle: (BundleRequest) -> (Result_2);
-   dataOf: (vec nat32) -> (vec opt Item) query;
-   dripsBurnedCount: () -> (nat) query;
-   equip: (vec nat32) -> (Result_1);
+   data_of: (vec nat32) -> (vec opt Item) query;
+   drips_burned_count: () -> (nat) query;
    http_request: (HttpRequest) -> (HttpResponse) query;
    name: () -> (text) query;
-   ownerOf: (vec nat32) -> (vec opt principal) query;
-   playerData: (opt principal) -> (opt PlayerData) query;
+   owner_of: (vec nat32) -> (vec opt principal) query;
    symbol: () -> (text) query;
-   totalSupply: () -> (nat) query;
-   transferTo: (principal, nat32, opt bool) -> (Result_1);
+   total_supply: () -> (nat) query;
    transfer_notification: (TransferNotification) -> (Result_1);
+   transfer_to: (principal, nat32, opt bool) -> (Result_1);
    unbundle: (nat32) -> (Result);
-   userTokens: (opt principal) -> (vec nat32) query;
+   user_tokens: (opt principal) -> (vec nat32) query;
  };
 service : () -> Bag

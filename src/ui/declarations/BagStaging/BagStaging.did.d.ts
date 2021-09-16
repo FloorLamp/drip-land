@@ -1,23 +1,21 @@
 import type { Principal } from '@dfinity/principal';
 export interface Bag {
   'bundle' : (arg_0: BundleRequest) => Promise<Result_2>,
-  'dataOf' : (arg_0: Array<number>) => Promise<Array<[] | [Item]>>,
-  'dripsBurnedCount' : () => Promise<bigint>,
-  'equip' : (arg_0: Array<number>) => Promise<Result_1>,
+  'data_of' : (arg_0: Array<number>) => Promise<Array<[] | [Item]>>,
+  'drips_burned_count' : () => Promise<bigint>,
   'http_request' : (arg_0: HttpRequest) => Promise<HttpResponse>,
   'name' : () => Promise<string>,
-  'ownerOf' : (arg_0: Array<number>) => Promise<Array<[] | [Principal]>>,
-  'playerData' : (arg_0: [] | [Principal]) => Promise<[] | [PlayerData]>,
+  'owner_of' : (arg_0: Array<number>) => Promise<Array<[] | [Principal]>>,
   'symbol' : () => Promise<string>,
-  'totalSupply' : () => Promise<bigint>,
-  'transferTo' : (
+  'total_supply' : () => Promise<bigint>,
+  'transfer_notification' : (arg_0: TransferNotification) => Promise<Result_1>,
+  'transfer_to' : (
       arg_0: Principal,
       arg_1: number,
       arg_2: [] | [boolean],
     ) => Promise<Result_1>,
-  'transfer_notification' : (arg_0: TransferNotification) => Promise<Result_1>,
   'unbundle' : (arg_0: number) => Promise<Result>,
-  'userTokens' : (arg_0: [] | [Principal]) => Promise<Array<number>>,
+  'user_tokens' : (arg_0: [] | [Principal]) => Promise<Array<number>>,
 }
 export interface BundleRequest { 'ids' : Array<number>, 'name' : string }
 export type HeaderField = [string, string];
@@ -40,30 +38,7 @@ export interface Item {
   'properties' : Array<Property>,
   'childOf' : [] | [number],
   'children' : Array<number>,
-  'state' : [] | [ItemState],
-  'dripProperties' : [] | [{ 'id' : number, 'isBurned' : boolean }],
 }
-export type ItemState = { 'none' : null } |
-  { 'equipped' : null };
-export interface PlayerData {
-  'status' : Array<PlayerStatus>,
-  'inventory' : Array<number>,
-  'name' : string,
-  'equipped' : {
-      'items' : {
-        'accessory' : [] | [number],
-        'foot' : [] | [number],
-        'hand' : [] | [number],
-        'head' : [] | [number],
-        'shirt' : [] | [number],
-        'underwear' : [] | [number],
-        'pants' : [] | [number],
-        'waist' : [] | [number],
-      }
-    } |
-    { 'bundle' : [] | [number] },
-}
-export type PlayerStatus = {};
 export interface Property {
   'value' : { 'Int' : bigint } |
     { 'Bool' : boolean } |
@@ -96,7 +71,6 @@ export interface TransferNotification {
   'to' : Principal,
   'token_id' : bigint,
   'from' : Principal,
-  'memo' : Array<number>,
   'amount' : bigint,
 }
 export interface _SERVICE extends Bag {}

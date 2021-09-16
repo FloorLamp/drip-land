@@ -22,7 +22,7 @@ export const useInventory = () => {
     async () => {
       const [dripTokens, bagTokens, wrappedTokens] = await Promise.all([
         drip.user_tokens(principal),
-        bag.user_tokens([]),
+        bag.userTokens([]),
         wrapper.tokens(firstAccountOfPrincipal(principal)),
       ]);
       const wrappedTokenIds = "ok" in wrappedTokens ? wrappedTokens.ok : [];
@@ -32,7 +32,7 @@ export const useInventory = () => {
         drip.data_of_many({
           List: dripTokens.concat(wrappedTokenIds.map(BigInt)),
         }),
-        bag.data_of(bagTokens),
+        bag.dataOf(bagTokens),
       ]);
       console.log(rawDripItems);
 
@@ -48,6 +48,8 @@ export const useInventory = () => {
           childOf: [],
           lootData: data,
           extWrapped: wrappedTokenIds.includes(id),
+          state: [],
+          dripProperties: [],
         };
       });
       const bagItems = rawBagItems

@@ -36,6 +36,7 @@ module {
     token_id : Nat64;
     from : Principal;
     amount : Nat64;
+    memo : Blob;
   };
   public type Self = actor {
     add_airdrops : shared [Principal] -> async Bool;
