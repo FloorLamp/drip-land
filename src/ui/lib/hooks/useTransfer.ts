@@ -23,7 +23,7 @@ export const useTransfer = (item: TypedItem) => {
     ["transfer", item.id],
     async ({ recipient }: { recipient: Principal }) => {
       if (item.type === "Bag") {
-        return await bag.transfer_to(recipient, item.id, []);
+        return await bag.transferTo(recipient, item.id, []);
       } else {
         if (item.extWrapped) {
           const tokenId = tokenIdentifier(canisterId, item.id);

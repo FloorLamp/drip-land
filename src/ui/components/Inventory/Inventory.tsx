@@ -77,9 +77,11 @@ export function Inventory() {
         </div>
       </div>
 
-      <div className="w-full sm:flex-none sm:w-72 p-4 bg-drip-purple-400 shadow-md">
-        <div>{selectedItem && <ItemDetails item={selectedItem} />}</div>
-      </div>
+      {inventory.isSuccess && (
+        <div className="w-full sm:flex-none sm:w-72 p-4 bg-drip-purple-400 shadow-md">
+          <div>{selectedItem && <ItemDetails item={selectedItem} />}</div>
+        </div>
+      )}
     </div>
   );
 }

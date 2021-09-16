@@ -8,7 +8,7 @@ export const useItemData = (ids: number[]) => {
   return useQuery(
     ["items", ids],
     async () => {
-      return (await bag.data_of(ids))
+      return (await bag.dataOf(ids))
         .map((item, i) => {
           if (!item[0]) {
             console.error(`bag: missing item ${ids[i]}`);
