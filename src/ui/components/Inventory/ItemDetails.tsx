@@ -53,7 +53,7 @@ export function ItemDetails({ item }: { item: TypedItem }) {
               return (
                 <li key={data.slot}>
                   <label className="px-1 py-0.5 text-xs uppercase bg-drip-purple-500 text-drip-purple-100">
-                    {data.slot === "weapon" ? "Hand" : data.slot}
+                    {data.slot === "weapon" ? "hand" : data.slot}
                   </label>{" "}
                   {!!data.name_prefix && `"${data.name_prefix}" `}
                   {!!data.prefix && `${data.prefix} `}

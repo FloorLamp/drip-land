@@ -26,7 +26,7 @@ export default function App({ Component, pageProps }) {
       <Store>
         <Subscriptions />
         <Head>
-          <title>Cubic</title>
+          <title>drip.land</title>
         </Head>
         <div className="flex flex-col items-center bg-drip-purple-500 text-white min-h-screen">
           <Nav />

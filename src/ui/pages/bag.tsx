@@ -1,5 +1,6 @@
 import React from "react";
 import { Inventory } from "../components/Inventory/Inventory";
+import { MetaTags } from "../components/MetaTags";
 import { useGlobalContext } from "../components/Store/Store";
 
 export default function Bag() {
@@ -12,6 +13,7 @@ export default function Bag() {
 
   return (
     <>
+      <MetaTags title="Bag" description="Check out your Drip" />
       <Inventory />
     </>
   );

@@ -186,7 +186,7 @@ export default function LoginButton() {
               Stoic requires third-party cookies to connect.
               <ul className="list-disc mt-2 pl-5">
                 <li>
-                  <strong>Brave</strong> — Disable shields for cubic.place
+                  <strong>Brave</strong> — Disable shields for drip.land
                 </li>
                 <li>
                   <strong>Safari</strong> — Enable cross-site tracking
