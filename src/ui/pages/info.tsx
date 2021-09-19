@@ -1,5 +1,5 @@
 import React from "react";
-import { FaGithub, FaTelegram } from "react-icons/fa";
+import { FaDiscord, FaGithub, FaTelegram, FaTwitter } from "react-icons/fa";
 import Panel from "../components/Containers/Panel";
 import Footer from "../components/Layout/Footer";
 import { homeDescription, MetaTags } from "../components/MetaTags";
@@ -32,16 +32,16 @@ export default function InfoPage() {
             <div>
               <h2 className="text-2xl">How do I contribute?</h2>
               <p>
-                Come join us in the{" "}
+                Come join us in{" "}
                 <a
-                  href="https://t.me/icdrip"
+                  href="https://discord.gg/RVX6CqnApW"
                   className="underline"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Telegram
+                  Discord
                 </a>{" "}
-                group where we actively discuss the latest ideas for the Drip
+                where we actively discuss the latest ideas for the Drip
                 universe. We're looking for graphic designers, game artists,
                 storytellers, world builders, and of course, developers!
               </p>
@@ -52,16 +52,32 @@ export default function InfoPage() {
               <ul className="">
                 <li>
                   <a
-                    href={`https://ic.rocks/principal/${canisterId}`}
+                    href="https://twitter.com/ICdripland"
                     className="hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <img
-                      src="/img/vendor/ic.rocks-logo.svg"
-                      className="w-4 inline-block mr-2"
-                    />{" "}
-                    ic.rocks
+                    <FaTwitter className="inline-block mr-2" /> Twitter
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://discord.gg/RVX6CqnApW"
+                    className="hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <FaDiscord className="inline-block mr-2" /> Discord
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://t.me/icdrip"
+                    className="hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <FaTelegram className="inline-block mr-2" /> Telegram
                   </a>
                 </li>
                 <li>
@@ -76,12 +92,16 @@ export default function InfoPage() {
                 </li>
                 <li>
                   <a
-                    href="https://t.me/icdrip"
+                    href={`https://ic.rocks/principal/${canisterId}`}
                     className="hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <FaTelegram className="inline-block mr-2" /> Telegram
+                    <img
+                      src="/img/vendor/ic.rocks-logo.svg"
+                      className="w-4 inline-block mr-2"
+                    />{" "}
+                    ic.rocks
                   </a>
                 </li>
               </ul>
