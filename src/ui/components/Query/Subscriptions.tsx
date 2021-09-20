@@ -1,11 +1,12 @@
+import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { useQueryClient } from "react-query";
-import { useGlobalContext, useNotifications } from "../Store/Store";
+import { authedAtom, principalAtom } from "../../atoms/actorsAtom";
+import { useNotifications } from "../Store/Store";
 
 export const Subscriptions = () => {
-  const {
-    state: { principal, isAuthed },
-  } = useGlobalContext();
+  const [principal] = useAtom(principalAtom);
+  const [isAuthed] = useAtom(authedAtom);
   const queryClient = useQueryClient();
 
   const { add, clear } = useNotifications();

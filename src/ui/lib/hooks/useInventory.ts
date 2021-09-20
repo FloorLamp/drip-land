@@ -1,40 +1,43 @@
+import { useAtom } from "jotai";
 import { useQuery } from "react-query";
-import {
-  useBag,
-  useDrip,
-  useGlobalContext,
-  useWrapper,
-} from "../../components/Store/Store";
+import { actorsAtom, principalAtom } from "../../atoms/actorsAtom";
 import { firstAccountOfPrincipal } from "../accounts";
 import { ONE_MINUTES_MS } from "../constants";
 import { TypedItem } from "../types";
+import { usePlayerData } from "./usePlayerData";
+import { useReclaim } from "./useReclaim";
 
 export const useInventory = () => {
-  const {
-    state: { principal },
-  } = useGlobalContext();
-  const drip = useDrip();
-  const bag = useBag();
-  const wrapper = useWrapper();
+  const [principal] = useAtom(principalAtom);
+  const [{ drip, bag, wrapper }] = useAtom(actorsAtom);
+  const playerData = usePlayerData();
+  const reclaim = useReclaim();
 
   return useQuery(
     "inventory",
     async () => {
-      const [dripTokens, bagTokens, wrappedTokens] = await Promise.all([
+      const [dripTokens, wrappedTokens] = await Promise.all([
         drip.user_tokens(principal),
-        bag.userTokens([]),
-        wrapper.tokens(firstAccountOfPrincipal(principal)),
+        process.env.NEXT_PUBLIC_DFX_NETWORK !== "local" &&
+          process.env.NEXT_PUBLIC_DFX_NETWORK !== "staging" &&
+          wrapper.tokens(firstAccountOfPrincipal(principal)),
       ]);
-      const wrappedTokenIds = "ok" in wrappedTokens ? wrappedTokens.ok : [];
-      console.log(wrappedTokenIds);
+      const wrappedTokenIds =
+        wrappedTokens && "ok" in wrappedTokens ? wrappedTokens.ok : [];
 
       const [rawDripItems, rawBagItems] = await Promise.all([
         drip.data_of_many({
           List: dripTokens.concat(wrappedTokenIds.map(BigInt)),
         }),
-        bag.dataOf(bagTokens),
+        bag.dataOf(playerData.data?.inventory ?? []),
       ]);
-      console.log(rawDripItems);
+      console.log({ rawDripItems, rawBagItems });
+
+      if (
+        rawBagItems.find(([item]) => item?.dripProperties[0] && !item.state[0])
+      ) {
+        reclaim.mutate();
+      }
 
       const dripItems: TypedItem[] = rawDripItems.map(([id_, data]) => {
         const id = Number(id_);
@@ -55,7 +58,7 @@ export const useInventory = () => {
       const bagItems = rawBagItems
         .map((item, i) => {
           if (!item[0]) {
-            console.error(`bag: missing item ${bagTokens[i]}`);
+            console.error(`bag: missing item ${playerData.data.inventory[i]}`);
             return false;
           }
 
@@ -65,7 +68,7 @@ export const useInventory = () => {
       return dripItems.concat(bagItems);
     },
     {
-      enabled: !!principal && !principal.isAnonymous(),
+      enabled: !!principal && !principal.isAnonymous() && playerData.isSuccess,
       keepPreviousData: true,
       refetchInterval: ONE_MINUTES_MS,
     }

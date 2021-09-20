@@ -5,6 +5,7 @@ import { useInventory } from "../../lib/hooks/useInventory";
 import { TypedItem } from "../../lib/types";
 import { bagUrl, dripUrl } from "../../lib/url";
 import { pluralize } from "../../lib/utils";
+import { Character } from "./Character";
 import { ItemDetails } from "./ItemDetails";
 
 const MINIMUM_ITEMS = 8;
@@ -78,9 +79,14 @@ export function Inventory() {
       </div>
 
       {inventory.isSuccess && (
-        <div className="w-full sm:flex-none sm:w-72 p-4 bg-drip-purple-400 shadow-md">
-          <div>{selectedItem && <ItemDetails item={selectedItem} />}</div>
-        </div>
+        <>
+          <div className="w-full sm:flex-none sm:w-64 p-4 bg-drip-purple-400 shadow-md">
+            <div>{selectedItem && <ItemDetails item={selectedItem} />}</div>
+          </div>
+          <div className="w-full sm:flex-none sm:w-64 p-4 bg-drip-purple-400 shadow-md">
+            <Character />
+          </div>
+        </>
       )}
     </div>
   );

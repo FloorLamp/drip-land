@@ -8,7 +8,7 @@ module {
       #bundle: ?Nat32;
       #items: {
         hand: ?Nat32;
-        shirt: ?Nat32;
+        chest: ?Nat32;
         head: ?Nat32;
         waist: ?Nat32;
         foot: ?Nat32;
@@ -23,7 +23,6 @@ module {
   public type PlayerStatus = {};
 
   public type ItemState = {
-    #none;
     #equipped;
   };
 

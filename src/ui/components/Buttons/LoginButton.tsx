@@ -2,14 +2,17 @@ import { HttpAgent, Identity, SignIdentity } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
 import PlugConnect from "@psychedelic/plug-connect";
 import { StoicIdentity } from "ic-stoic-identity";
+import { useAtom } from "jotai";
+import { useResetAtom } from "jotai/utils";
 import React, { useEffect, useState } from "react";
+import { agentAtom, authedAtom } from "../../atoms/actorsAtom";
 import { canisterId as BagCanisterId } from "../../declarations/Bag";
 import { canisterId as DripCanisterId } from "../../declarations/Drip";
 import { canisterId as WrapperCanisterId } from "../../declarations/Wrapper";
 import { HOST, IDENTITY_PROVIDER } from "../../lib/canisters";
 import { ONE_WEEK_NS } from "../../lib/constants";
 import Modal from "../Layout/Modal";
-import { useGlobalContext, useLoginModal, useSetAgent } from "../Store/Store";
+import { useLoginModal } from "../Store/Store";
 
 declare global {
   interface Window {
@@ -57,21 +60,19 @@ export default function LoginButton() {
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
 
-  const {
-    state: { isAuthed },
-  } = useGlobalContext();
-  const setAgent = useSetAgent();
+  const [_, setAgent] = useAtom(agentAtom);
+  const resetAgent = useResetAtom(agentAtom);
+  const [isAuthed] = useAtom(authedAtom);
   const [authClient, setAuthClient] = useState<AuthClient>(null);
 
   const handleAuthenticated = async (authClient: AuthClient) => {
     const identity: Identity = authClient.getIdentity();
-    setAgent({
-      agent: new HttpAgent({
+    setAgent(
+      new HttpAgent({
         identity,
         host: HOST,
-      }),
-      isAuthed: true,
-    });
+      })
+    );
     closeModal();
   };
 
@@ -86,14 +87,11 @@ export default function LoginButton() {
 
   const handleIILogout = async () => {
     await authClient.logout();
-    setAgent({ agent: null });
+    resetAgent();
   };
 
   const handlePlugLogin = async () => {
-    setAgent({
-      agent: await window?.ic?.plug?.agent,
-      isAuthed: true,
-    });
+    setAgent(await window?.ic?.plug?.agent);
     closeModal();
   };
 
@@ -102,13 +100,12 @@ export default function LoginButton() {
     StoicIdentity.load().then(async (identity: SignIdentity) => {
       // It seems like some login methods (eg. password) require connecting every time
       identity = await StoicIdentity.connect();
-      setAgent({
-        agent: new HttpAgent({
+      setAgent(
+        new HttpAgent({
           identity,
           host: HOST,
-        }),
-        isAuthed: true,
-      });
+        })
+      );
       closeModal();
     });
   };
@@ -116,7 +113,7 @@ export default function LoginButton() {
   const handleLogout = async () => {
     if (await window?.ic?.plug?.isConnected()) {
       window.ic.plug.agent = null;
-      setAgent({ agent: null });
+      resetAgent();
     } else {
       handleIILogout();
     }

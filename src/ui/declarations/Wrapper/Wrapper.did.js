@@ -2,11 +2,11 @@ export const idlFactory = ({ IDL }) => {
   const SubAccount_3 = IDL.Vec(IDL.Nat8);
   const SubAccount_2 = SubAccount_3;
   const SubAccount = SubAccount_2;
-  const TokenIndex_2 = IDL.Nat32;
-  const TokenIndex = TokenIndex_2;
   const AccountIdentifier_2 = IDL.Text;
   const AccountIdentifier = AccountIdentifier_2;
   const AccountIdentifier_3 = AccountIdentifier;
+  const TokenIndex_2 = IDL.Nat32;
+  const TokenIndex = TokenIndex_2;
   const Settlement = IDL.Record({
     subaccount: SubAccount,
     seller: IDL.Principal,
@@ -60,6 +60,13 @@ export const idlFactory = ({ IDL }) => {
     nonfungible: IDL.Record({ metadata: IDL.Opt(IDL.Vec(IDL.Nat8)) }),
   });
   const Metadata = Metadata_2;
+  const Transaction = IDL.Record({
+    token: TokenIdentifier,
+    time: Time,
+    seller: IDL.Principal,
+    buyer: AccountIdentifier_3,
+    price: IDL.Nat64,
+  });
   const HeaderField = IDL.Tuple(IDL.Text, IDL.Text);
   const HttpRequest = IDL.Record({
     url: IDL.Text,
@@ -91,13 +98,6 @@ export const idlFactory = ({ IDL }) => {
     ),
     err: CommonError,
   });
-  const Transaction = IDL.Record({
-    token: TokenIdentifier,
-    time: Time,
-    seller: IDL.Principal,
-    buyer: AccountIdentifier_3,
-    price: IDL.Nat64,
-  });
   const Memo = IDL.Vec(IDL.Nat8);
   const TransferRequest_2 = IDL.Record({
     to: User,
@@ -123,22 +123,28 @@ export const idlFactory = ({ IDL }) => {
   const TransferResponse_2 = Result;
   const TransferResponse = TransferResponse_2;
   return IDL.Service({
-    acceptCycles: IDL.Func([], [], []),
-    addRefund: IDL.Func([IDL.Text, IDL.Principal, SubAccount], [], ["oneway"]),
-    availableCycles: IDL.Func([], [IDL.Nat], ["query"]),
-    backendRefundSettlement: IDL.Func(
+    TEMPaddPayment: IDL.Func([IDL.Text, IDL.Principal, SubAccount], [], []),
+    TEMPusedAddresses: IDL.Func(
       [IDL.Text],
-      [
-        IDL.Vec(IDL.Tuple(TokenIndex, Settlement)),
-        IDL.Vec(IDL.Tuple(AccountIdentifier_3, IDL.Principal, SubAccount)),
-        IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(SubAccount))),
-        IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(SubAccount))),
-      ],
+      [IDL.Vec(IDL.Tuple(AccountIdentifier_3, IDL.Principal, SubAccount))],
+      []
+    ),
+    acceptCycles: IDL.Func([], [], []),
+    allPayments: IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(SubAccount)))],
       ["query"]
     ),
+    allSettlements: IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(TokenIndex, Settlement))],
+      ["query"]
+    ),
+    availableCycles: IDL.Func([], [IDL.Nat], ["query"]),
     balance: IDL.Func([BalanceRequest], [BalanceResponse], ["query"]),
     bearer: IDL.Func([TokenIdentifier], [Result_7], ["query"]),
     checkOwnership: IDL.Func([], [IDL.Nat], []),
+    clearPayments: IDL.Func([IDL.Principal, IDL.Vec(SubAccount)], [], []),
     details: IDL.Func([TokenIdentifier], [Result_8], ["query"]),
     extensions: IDL.Func([], [IDL.Vec(Extension)], ["query"]),
     getOutstanding: IDL.Func([], [IDL.Nat], ["query"]),
@@ -150,6 +156,11 @@ export const idlFactory = ({ IDL }) => {
     getTokens: IDL.Func(
       [],
       [IDL.Vec(IDL.Tuple(TokenIndex, Metadata))],
+      ["query"]
+    ),
+    getTransactions: IDL.Func(
+      [IDL.Opt(IDL.Nat)],
+      [IDL.Vec(Transaction)],
       ["query"]
     ),
     http_request: IDL.Func([HttpRequest], [HttpResponse], ["query"]),

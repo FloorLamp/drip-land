@@ -49,6 +49,6 @@ input[type="checkbox"] {
   }
 
   .btn-inventory {
-    @apply w-24 py-2 btn-primary;
+    @apply w-24 py-2;
   }
 }

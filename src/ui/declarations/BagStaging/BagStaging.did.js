@@ -12,6 +12,7 @@ export const idlFactory = ({ IDL }) => {
     }),
     'name' : IDL.Text,
   });
+  const ItemState = IDL.Variant({ 'equipped' : IDL.Null });
   const Item = IDL.Record({
     'id' : IDL.Nat32,
     'owner' : IDL.Principal,
@@ -19,7 +20,12 @@ export const idlFactory = ({ IDL }) => {
     'properties' : IDL.Vec(Property),
     'childOf' : IDL.Opt(IDL.Nat32),
     'children' : IDL.Vec(IDL.Nat32),
+    'state' : IDL.Opt(ItemState),
+    'dripProperties' : IDL.Opt(
+      IDL.Record({ 'id' : IDL.Nat32, 'isBurned' : IDL.Bool })
+    ),
   });
+  const Result = IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text });
   const HeaderField = IDL.Tuple(IDL.Text, IDL.Text);
   const HttpRequest = IDL.Record({
     'url' : IDL.Text,
@@ -53,39 +59,66 @@ export const idlFactory = ({ IDL }) => {
     'streaming_strategy' : IDL.Opt(StreamingStrategy),
     'status_code' : IDL.Nat16,
   });
+  const PlayerStatus = IDL.Record({});
+  const PlayerData = IDL.Record({
+    'status' : IDL.Vec(PlayerStatus),
+    'inventory' : IDL.Vec(IDL.Nat32),
+    'name' : IDL.Text,
+    'equipped' : IDL.Variant({
+      'items' : IDL.Record({
+        'accessory' : IDL.Opt(IDL.Nat32),
+        'foot' : IDL.Opt(IDL.Nat32),
+        'hand' : IDL.Opt(IDL.Nat32),
+        'head' : IDL.Opt(IDL.Nat32),
+        'chest' : IDL.Opt(IDL.Nat32),
+        'underwear' : IDL.Opt(IDL.Nat32),
+        'pants' : IDL.Opt(IDL.Nat32),
+        'waist' : IDL.Opt(IDL.Nat32),
+      }),
+      'bundle' : IDL.Opt(IDL.Nat32),
+    }),
+  });
   const TransferNotification = IDL.Record({
     'to' : IDL.Principal,
     'token_id' : IDL.Nat64,
     'from' : IDL.Principal,
+    'memo' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'amount' : IDL.Nat64,
   });
-  const Result_1 = IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text });
-  const Result = IDL.Variant({ 'ok' : IDL.Vec(IDL.Nat32), 'err' : IDL.Text });
+  const Result_1 = IDL.Variant({ 'ok' : IDL.Vec(IDL.Nat32), 'err' : IDL.Text });
   const Bag = IDL.Service({
     'bundle' : IDL.Func([BundleRequest], [Result_2], []),
-    'data_of' : IDL.Func(
+    'dataOf' : IDL.Func(
         [IDL.Vec(IDL.Nat32)],
         [IDL.Vec(IDL.Opt(Item))],
         ['query'],
       ),
-    'drips_burned_count' : IDL.Func([], [IDL.Nat], ['query']),
+    'dripsBurnedCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'equip' : IDL.Func([IDL.Vec(IDL.Nat32)], [Result], []),
     'http_request' : IDL.Func([HttpRequest], [HttpResponse], ['query']),
     'name' : IDL.Func([], [IDL.Text], ['query']),
-    'owner_of' : IDL.Func(
+    'ownerOf' : IDL.Func(
         [IDL.Vec(IDL.Nat32)],
         [IDL.Vec(IDL.Opt(IDL.Principal))],
         ['query'],
       ),
+    'playerData' : IDL.Func(
+        [IDL.Opt(IDL.Principal)],
+        [IDL.Opt(PlayerData)],
+        ['query'],
+      ),
+    'reclaim' : IDL.Func([IDL.Opt(IDL.Principal)], [IDL.Vec(IDL.Nat32)], []),
     'symbol' : IDL.Func([], [IDL.Text], ['query']),
-    'total_supply' : IDL.Func([], [IDL.Nat], ['query']),
-    'transfer_notification' : IDL.Func([TransferNotification], [Result_1], []),
-    'transfer_to' : IDL.Func(
+    'totalSupply' : IDL.Func([], [IDL.Nat], ['query']),
+    'transferTo' : IDL.Func(
         [IDL.Principal, IDL.Nat32, IDL.Opt(IDL.Bool)],
-        [Result_1],
+        [Result],
         [],
       ),
-    'unbundle' : IDL.Func([IDL.Nat32], [Result], []),
-    'user_tokens' : IDL.Func(
+    'transfer_notification' : IDL.Func([TransferNotification], [Result], []),
+    'unbundle' : IDL.Func([IDL.Nat32], [Result_1], []),
+    'unequip' : IDL.Func([IDL.Vec(IDL.Nat32)], [Result], []),
+    'userTokens' : IDL.Func(
         [IDL.Opt(IDL.Principal)],
         [IDL.Vec(IDL.Nat32)],
         ['query'],

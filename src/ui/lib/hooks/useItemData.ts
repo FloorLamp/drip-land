@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { useBag } from "../../components/Store/Store";
+import { useBag } from "../../atoms/actorsAtom";
 import { TypedItem } from "../types";
 
 export const useItemData = (ids: number[]) => {

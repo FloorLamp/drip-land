@@ -12,7 +12,7 @@ export const idlFactory = ({ IDL }) => {
     }),
     'name' : IDL.Text,
   });
-  const ItemState = IDL.Variant({ 'none' : IDL.Null, 'equipped' : IDL.Null });
+  const ItemState = IDL.Variant({ 'equipped' : IDL.Null });
   const Item = IDL.Record({
     'id' : IDL.Nat32,
     'owner' : IDL.Principal,
@@ -70,7 +70,7 @@ export const idlFactory = ({ IDL }) => {
         'foot' : IDL.Opt(IDL.Nat32),
         'hand' : IDL.Opt(IDL.Nat32),
         'head' : IDL.Opt(IDL.Nat32),
-        'shirt' : IDL.Opt(IDL.Nat32),
+        'chest' : IDL.Opt(IDL.Nat32),
         'underwear' : IDL.Opt(IDL.Nat32),
         'pants' : IDL.Opt(IDL.Nat32),
         'waist' : IDL.Opt(IDL.Nat32),
@@ -82,7 +82,7 @@ export const idlFactory = ({ IDL }) => {
     'to' : IDL.Principal,
     'token_id' : IDL.Nat64,
     'from' : IDL.Principal,
-    'memo' : IDL.Vec(IDL.Nat8),
+    'memo' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'amount' : IDL.Nat64,
   });
   const Result = IDL.Variant({ 'ok' : IDL.Vec(IDL.Nat32), 'err' : IDL.Text });
@@ -107,6 +107,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(PlayerData)],
         ['query'],
       ),
+    'reclaim' : IDL.Func([IDL.Opt(IDL.Principal)], [IDL.Vec(IDL.Nat32)], []),
     'symbol' : IDL.Func([], [IDL.Text], ['query']),
     'totalSupply' : IDL.Func([], [IDL.Nat], ['query']),
     'transferTo' : IDL.Func(
@@ -116,6 +117,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'transfer_notification' : IDL.Func([TransferNotification], [Result_1], []),
     'unbundle' : IDL.Func([IDL.Nat32], [Result], []),
+    'unequip' : IDL.Func([IDL.Vec(IDL.Nat32)], [Result], []),
     'userTokens' : IDL.Func(
         [IDL.Opt(IDL.Principal)],
         [IDL.Vec(IDL.Nat32)],

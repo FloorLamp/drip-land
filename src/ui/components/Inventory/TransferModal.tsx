@@ -44,7 +44,11 @@ export default function TransferModal({ item }: { item: TypedItem }) {
   return (
     <>
       <div>
-        <button type="button" onClick={openModal} className="btn-inventory">
+        <button
+          type="button"
+          onClick={openModal}
+          className="btn-inventory btn-primary"
+        >
           Transfer
         </button>
       </div>

@@ -35,8 +35,13 @@ module {
     to : Principal;
     token_id : Nat64;
     from : Principal;
+    memo : ?[Nat8];
     amount : Nat64;
-    memo : Blob;
+  };
+  public type TransferRequest = {
+    to : Principal;
+    token_id : Nat64;
+    memo : ?[Nat8];
   };
   public type Self = actor {
     add_airdrops : shared [Principal] -> async Bool;
@@ -47,7 +52,7 @@ module {
     get_address_book : shared query () -> async AddressBook;
     get_airdrops : shared query () -> async [(Nat64, Bool)];
     get_controllers : shared query () -> async [Principal];
-    get_cycles : shared () -> async Int64;
+    get_cycles : shared () -> async Nat64;
     get_token_properties : shared query Nat64 -> async [(Text, Text)];
     get_token_properties_range : shared query (Nat64, Nat64) -> async [
         [(Text, Text)]
@@ -60,7 +65,7 @@ module {
     supply : shared () -> async Nat64;
     symbol : shared query () -> async Text;
     transfer_to : shared (Principal, Nat64) -> async Bool;
-    transfer_with_notify : shared (Principal, Nat64) -> async Bool;
+    transfer_with_notify : shared TransferRequest -> async Bool;
     user_tokens : shared query Principal -> async [Nat64];
   }
 }

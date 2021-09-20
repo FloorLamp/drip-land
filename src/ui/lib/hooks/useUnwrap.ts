@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "react-query";
-import { useWrapper } from "../../components/Store/Store";
+import { useWrapper } from "../../atoms/actorsAtom";
 import { canisterId } from "../../declarations/Wrapper";
 import { tokenIdentifier } from "../ext";
 

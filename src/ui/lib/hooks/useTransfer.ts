@@ -1,23 +1,15 @@
 import { Principal } from "@dfinity/principal";
+import { useAtom } from "jotai";
 import { useMutation, useQueryClient } from "react-query";
-import {
-  useBag,
-  useDrip,
-  useGlobalContext,
-  useWrapper,
-} from "../../components/Store/Store";
+import { actorsAtom, principalAtom } from "../../atoms/actorsAtom";
 import { canisterId } from "../../declarations/Wrapper";
 import { tokenIdentifier } from "../ext";
 import { TypedItem } from "../types";
 
 export const useTransfer = (item: TypedItem) => {
   const queryClient = useQueryClient();
-  const {
-    state: { principal },
-  } = useGlobalContext();
-  const drip = useDrip();
-  const bag = useBag();
-  const wrapper = useWrapper();
+  const [principal] = useAtom(principalAtom);
+  const [{ drip, bag, wrapper }] = useAtom(actorsAtom);
 
   return useMutation(
     ["transfer", item.id],

@@ -112,31 +112,31 @@ export type TransferResponse = TransferResponse_2;
 export type TransferResponse_2 = Result;
 export type User = { principal: Principal } | { address: AccountIdentifier };
 export default interface _SERVICE {
-  acceptCycles: () => Promise<undefined>;
-  addRefund: (
+  TEMPaddPayment: (
     arg_0: string,
     arg_1: Principal,
     arg_2: SubAccount
   ) => Promise<undefined>;
-  availableCycles: () => Promise<bigint>;
-  backendRefundSettlement: (
+  TEMPusedAddresses: (
     arg_0: string
-  ) => Promise<
-    [
-      Array<[TokenIndex, Settlement]>,
-      Array<[AccountIdentifier_3, Principal, SubAccount]>,
-      Array<[Principal, Array<SubAccount>]>,
-      Array<[Principal, Array<SubAccount>]>
-    ]
-  >;
+  ) => Promise<Array<[AccountIdentifier_3, Principal, SubAccount]>>;
+  acceptCycles: () => Promise<undefined>;
+  allPayments: () => Promise<Array<[Principal, Array<SubAccount>]>>;
+  allSettlements: () => Promise<Array<[TokenIndex, Settlement]>>;
+  availableCycles: () => Promise<bigint>;
   balance: (arg_0: BalanceRequest) => Promise<BalanceResponse>;
   bearer: (arg_0: TokenIdentifier) => Promise<Result_7>;
   checkOwnership: () => Promise<bigint>;
+  clearPayments: (
+    arg_0: Principal,
+    arg_1: Array<SubAccount>
+  ) => Promise<undefined>;
   details: (arg_0: TokenIdentifier) => Promise<Result_8>;
   extensions: () => Promise<Array<Extension>>;
   getOutstanding: () => Promise<bigint>;
   getRegistry: () => Promise<Array<[TokenIndex, AccountIdentifier_3]>>;
   getTokens: () => Promise<Array<[TokenIndex, Metadata]>>;
+  getTransactions: (arg_0: [] | [bigint]) => Promise<Array<Transaction>>;
   http_request: (arg_0: HttpRequest) => Promise<HttpResponse>;
   list: (arg_0: ListRequest) => Promise<Result_5>;
   listings: () => Promise<Array<[TokenIndex, Listing, Metadata]>>;

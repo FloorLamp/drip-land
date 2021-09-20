@@ -1,10 +1,9 @@
-import { useGlobalContext } from "../../components/Store/Store";
+import { useAtom } from "jotai";
+import { principalAtom } from "../../atoms/actorsAtom";
 
 /** Stub for address book */
 export default function useNames() {
-  const {
-    state: { principal },
-  } = useGlobalContext();
+  const [principal] = useAtom(principalAtom);
   const principals = {
     ...(principal
       ? {

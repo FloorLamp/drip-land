@@ -1,10 +1,11 @@
 import classNames from "classnames";
+import { useAtom } from "jotai";
 import { useRouter } from "next/dist/client/router";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import React from "react";
+import { authedAtom, principalAtom } from "../../atoms/actorsAtom";
 import IdentifierLabelWithButtons from "../Buttons/IdentifierLabelWithButtons";
-import { useGlobalContext } from "../Store/Store";
 
 const LoginButton = dynamic(() => import("../Buttons/LoginButton"), {
   ssr: false,
@@ -39,9 +40,8 @@ function ActiveLink({
 }
 
 export default function Nav() {
-  const {
-    state: { principal, isAuthed },
-  } = useGlobalContext();
+  const [principal] = useAtom(principalAtom);
+  const [isAuthed] = useAtom(authedAtom);
 
   return (
     <nav className="w-full">

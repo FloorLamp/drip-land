@@ -136,19 +136,19 @@ export const useLoginModal = () => {
   ] as const;
 };
 
-export const useDrip = () => {
-  const context = useGlobalContext();
-  return context.state.drip;
-};
+// export const useDrip = () => {
+//   const context = useGlobalContext();
+//   return context.state.drip;
+// };
 
-export const useBag = () => {
-  const context = useGlobalContext();
-  return context.state.bag;
-};
-export const useWrapper = () => {
-  const context = useGlobalContext();
-  return context.state.wrapper;
-};
+// export const useBag = () => {
+//   const context = useGlobalContext();
+//   return context.state.bag;
+// };
+// export const useWrapper = () => {
+//   const context = useGlobalContext();
+//   return context.state.wrapper;
+// };
 
 export const useNotifications = () => {
   const context = useGlobalContext();

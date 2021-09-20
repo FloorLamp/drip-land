@@ -1,4 +1,5 @@
 import Array "mo:base/Array";
+import Buffer "mo:base/Buffer";
 import Debug "mo:base/Debug";
 import Drip "./DripTypes";
 import HashMap "mo:base/HashMap";
@@ -6,6 +7,7 @@ import Http "./Http";
 import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
 import Nat32 "mo:base/Nat32";
+import Nat32Helper "./Nat32";
 import Nat64 "mo:base/Nat64";
 import Option "mo:base/Option";
 import Principal "mo:base/Principal";
@@ -13,7 +15,7 @@ import Result "mo:base/Result";
 import Svg "./Svg";
 import T "./Types";
 import Text "mo:base/Text";
-import Nat32Helper "./Nat32";
+import TextHelper "./Text";
 import Time "mo:base/Time";
 import TrieSet "mo:base/TrieSet";
 
@@ -109,6 +111,51 @@ shared actor class Bag() = this {
   public shared({caller}) func equip(ids: [Nat32]) : async Result.Result<(), Text> {
     // TODO
     #ok()
+  };
+
+  /*
+    Unequip an Item
+  */
+  public shared({caller}) func unequip(ids: [Nat32]) : async Result.Result<[Nat32], Text> {
+    // TODO
+    let affected = _unequip(caller, #ids(ids));
+    ignore await reclaim(?caller);
+    #ok(affected)
+  };
+
+  /*
+    Ensure all Drips that are not equipped are actually owned by caller
+  */
+  public shared({caller}) func reclaim(principal: ?Principal) : async [Nat32] {
+    let user = Option.get(principal, caller);
+    let inventory = inventoryOf(user);
+    let toRemove = Buffer.Buffer<Nat32>(0);
+    for (bagId in inventory.vals()) {
+      switch (allItems.get(bagId)) {
+        case (?item) {
+          switch (item.state, item.dripProperties) {
+            case (null, ?{id; isBurned = false}) {
+              // Transfer Drip to user, delete from allItems
+              if (await drip.transfer_to(user, Nat64.fromNat(Nat32.toNat(id)))) {
+                allItems.delete(bagId);
+                toRemove.add(bagId);
+              };
+            };
+            case _ {}
+          };
+        };
+        case _ {
+          // Remove missing items from inventory
+          toRemove.add(bagId);
+        }
+      }
+    };
+    // Remove from user inventory
+    let toRemove_ = toRemove.toArray();
+    if (toRemove_.size() > 0) {
+      updateInventory(user, Array.filter<Nat32>(inventoryOf(user), func (i) { not Nat32Helper.contains(toRemove_, i) }))
+    };
+    toRemove_
   };
 
   /*
@@ -287,111 +334,122 @@ shared actor class Bag() = this {
   };
 
   // Notified by drip
-  public shared({ caller }) func transfer_notification({to; from; token_id; amount}: Drip.TransferNotification): async Result.Result<(), Text> {
+  public shared({ caller }) func transfer_notification({to; from; token_id; amount; memo}: Drip.TransferNotification): async Result.Result<(), Text> {
     Debug.print("transfer_notification " # debug_show({to; from; token_id; amount}));
     assert(caller == Principal.fromActor(drip) and to == thisPrincipal());
 
     // Fetch data
     let data = await drip.data_of(token_id);
 
-    let memo = "equip";
     switch(memo) {
-      case "unbundle" {
-        // Create constituents
-        let count = data.size();
-        let idx = nextItemId;
-        let newItemIds = Array.tabulate<Nat32>(count, func (i) {
-          let id = Nat32.fromNat(i) + idx;
-          let item = {
-            id = id;
-            name = data[i].name;
-            owner = from;
-            properties = [{
-              name = "slot";
-              value = #Text(switch (data[i].slot) {
-                case "weapon" { "hand" };
-                case t { t };
-              });
-            }, {
-              name = "prefix";
-              value = #Text(data[i].prefix);
-            }, {
-              name = "name_prefix";
-              value = #Text(data[i].name_prefix);
-            }, {
-              name = "name_suffix";
-              value = #Text(data[i].name_suffix);
-            }, {
-              name = "special";
-              value = #Bool(data[i].special);
-            }];
-            children = [];
-            childOf = null;
-            state = null;
-            dripProperties = null;
+      case (?memo_) {
+        switch(TextHelper.textFromVec(memo_)) {
+          case "unbundle" {
+            // Create constituents
+            let count = data.size();
+            let idx = nextItemId;
+            let newItemIds = Array.tabulate<Nat32>(count, func (i) {
+              let id = Nat32.fromNat(i) + idx;
+              let item = {
+                id = id;
+                name = data[i].name;
+                owner = from;
+                properties = [{
+                  name = "slot";
+                  value = #Text(switch (data[i].slot) {
+                    case "weapon" { "hand" };
+                    case t { t };
+                  });
+                }, {
+                  name = "prefix";
+                  value = #Text(data[i].prefix);
+                }, {
+                  name = "name_prefix";
+                  value = #Text(data[i].name_prefix);
+                }, {
+                  name = "name_suffix";
+                  value = #Text(data[i].name_suffix);
+                }, {
+                  name = "special";
+                  value = #Bool(data[i].special);
+                }];
+                children = [];
+                childOf = null;
+                state = null;
+                dripProperties = null;
+              };
+              allItems.put(id, item);
+              id
+            });
+
+            nextItemId += Nat32.fromNat(count);
+
+            // Add to item ledger
+            let newId = nextItemId;
+            allItems.put(newId, {
+              id = newId;
+              dripProperties = ?{
+                id = Nat32.fromNat(Nat64.toNat(token_id));
+                isBurned = true;
+              };
+              name = "Drip " # Nat64.toText(token_id);
+              owner = thisPrincipal();
+              properties = [];
+              children = newItemIds;
+              childOf = null;
+              state = null;
+            });
+            nextItemId += 1;
+            dripsBurned += 1;
+
+            // Add to receiver ledger
+            let receiverInventory = inventoryOf(from);
+            updateInventory(from, Array.append(receiverInventory, newItemIds));
           };
-          allItems.put(id, item);
-          id
-        });
+          case "equip" {
+            // Unequip player
+            ignore _unequip(from, #all);
 
-        nextItemId += Nat32.fromNat(count);
+            // Add to item ledger
+            let newId = nextItemId;
+            allItems.put(newId, {
+              id = newId;
+              dripProperties = ?{
+                id = Nat32.fromNat(Nat64.toNat(token_id));
+                isBurned = false;
+              };
+              name = "Drip " # Nat64.toText(token_id) # " (equipped)";
+              owner = from;
+              properties = [];
+              children = [];
+              childOf = null;
+              state = ?#equipped;
+            });
+            nextItemId += 1;
 
-        // Add to item ledger
-        let newId = nextItemId;
-        allItems.put(newId, {
-          id = newId;
-          dripProperties = ?{
-            id = Nat32.fromNat(Nat64.toNat(token_id));
-            isBurned = true;
+            // Add to receiver ledger
+            let playerData = Option.get(ledger.get(from), {
+              name = "";
+              equipped = #bundle(?newId);
+              inventory = [];
+              status = [];
+            });
+            ledger.put(from, {
+              name = playerData.name;
+              equipped = #bundle(?newId);
+              status = playerData.status;
+              inventory = Array.append(playerData.inventory, [newId])
+            });
+
+            ignore reclaim(?from);
           };
-          name = "Drip " # Nat64.toText(token_id);
-          owner = thisPrincipal();
-          properties = [];
-          children = newItemIds;
-          childOf = null;
-          state = null;
-        });
-        nextItemId += 1;
-        dripsBurned += 1;
-
-        // Add to receiver ledger
-        let receiverInventory = inventoryOf(from);
-        updateInventory(from, Array.append(receiverInventory, newItemIds));
-      };
-      case "equip" {
-        // Add to item ledger
-        let newId = nextItemId;
-        allItems.put(newId, {
-          id = newId;
-          dripProperties = ?{
-            id = Nat32.fromNat(Nat64.toNat(token_id));
-            isBurned = false;
-          };
-          name = "Drip " # Nat64.toText(token_id);
-          owner = from;
-          properties = [];
-          children = [];
-          childOf = null;
-          state = null;
-        });
-        nextItemId += 1;
-
-        // Add to receiver ledger
-        let playerData = Option.get(ledger.get(from), {
-          name = "";
-          equipped = #bundle(?newId);
-          inventory = [];
-          status = [];
-        });
-        ledger.put(from, {
-          name = playerData.name;
-          equipped = playerData.equipped;
-          status = playerData.status;
-          inventory = Array.append(playerData.inventory, [newId])
-        });
+          case _ {
+            return #err("Invalid memo");
+          }
+        };
       };
       case _ {
-        return #err("Invalid memo");
+        return #err("Missing memo");
       }
     };
 
@@ -440,5 +498,171 @@ shared actor class Bag() = this {
       status = data.status;
       inventory = inventory
     });
+  };
+
+  func updateItemState(id: Nat32, state: ?T.ItemState): () {
+    switch (allItems.get(id)) {
+      case (?item) {
+        allItems.put(id, {
+          id = item.id;
+          dripProperties = item.dripProperties;
+          name = item.name;
+          owner = item.owner;
+          properties = item.properties;
+          children = item.children;
+          childOf = item.childOf;
+          state = state;
+        });
+      };
+      case _ {}
+    }
+  };
+
+  func _unequip(user: Principal, opts: { #all; #ids: [Nat32] }): [Nat32] {
+    let data = Option.get(ledger.get(user), {
+      name = "";
+      equipped = #bundle(null);
+      inventory = [];
+      status = [];
+    });
+    let (equipped, ids) = switch (data.equipped, opts) {
+      case (#bundle(?id), #ids(ids)) {
+        if (Nat32Helper.contains(ids, id)) {
+          updateItemState(id, null);
+          (#bundle(null), [id])
+        } else {
+          (#bundle(?id), [])
+        }
+      };
+      case (#bundle(?id), #all) {
+        updateItemState(id, null);
+        (#bundle(null), [id])
+      };
+      case (#bundle(null), #ids(ids)) {
+        updateItemState(ids[0], null);
+        (#bundle(null), [ids[0]])
+      };
+      case (#bundle(null), #all) {
+        (#bundle(null), [])
+      };
+      case (#items({
+        hand; chest; head; waist; foot; pants; underwear; accessory
+      }), #all) {
+        ignore do ? { updateItemState(hand!, null) };
+        ignore do ? { updateItemState(chest!, null) };
+        ignore do ? { updateItemState(head!, null) };
+        ignore do ? { updateItemState(waist!, null) };
+        ignore do ? { updateItemState(foot!, null) };
+        ignore do ? { updateItemState(pants!, null) };
+        ignore do ? { updateItemState(underwear!, null) };
+        ignore do ? { updateItemState(accessory!, null) };
+        (#bundle(null), [])
+      };
+      case (#items({
+        hand; chest; head; waist; foot; pants; underwear; accessory
+      }), #ids(ids)) {
+        let unequipped = Buffer.Buffer<Nat32>(0);
+        let hand_ = switch (hand) {
+          case (?id) {
+            if (Nat32Helper.contains(ids, id)) {
+              updateItemState(id, null);
+              unequipped.add(id);
+              null
+            } else { ?id }
+          };
+          case _ null;
+        };
+        let chest_ = switch (chest) {
+          case (?id) {
+            if (Nat32Helper.contains(ids, id)) {
+              updateItemState(id, null);
+              unequipped.add(id);
+              null
+            } else { ?id }
+          };
+          case _ null;
+        };
+        let head_ = switch (head) {
+          case (?id) {
+            if (Nat32Helper.contains(ids, id)) {
+              updateItemState(id, null);
+              unequipped.add(id);
+              null
+            } else { ?id }
+          };
+          case _ null;
+        };
+        let waist_ = switch (waist) {
+          case (?id) {
+            if (Nat32Helper.contains(ids, id)) {
+              updateItemState(id, null);
+              unequipped.add(id);
+              null
+            } else { ?id }
+          };
+          case _ null;
+        };
+        let foot_ = switch (foot) {
+          case (?id) {
+            if (Nat32Helper.contains(ids, id)) {
+              updateItemState(id, null);
+              unequipped.add(id);
+              null
+            } else { ?id }
+          };
+          case _ null;
+        };
+        let pants_ = switch (pants) {
+          case (?id) {
+            if (Nat32Helper.contains(ids, id)) {
+              updateItemState(id, null);
+              unequipped.add(id);
+              null
+            } else { ?id }
+          };
+          case _ null;
+        };
+        let underwear_ = switch (underwear) {
+          case (?id) {
+            if (Nat32Helper.contains(ids, id)) {
+              updateItemState(id, null);
+              unequipped.add(id);
+              null
+            } else { ?id }
+          };
+          case _ null;
+        };
+        let accessory_ = switch (accessory) {
+          case (?id) {
+            if (Nat32Helper.contains(ids, id)) {
+              updateItemState(id, null);
+              unequipped.add(id);
+              null
+            } else { ?id }
+          };
+          case _ null;
+        };
+        (
+          #items({
+            hand = hand_;
+            chest = chest_;
+            head = head_;
+            waist = waist_;
+            foot = foot_;
+            pants = pants_;
+            underwear = underwear_;
+            accessory = accessory_;
+          }),
+          unequipped.toArray()
+        )
+      };
+    };
+    ledger.put(user, {
+      name = data.name;
+      equipped = equipped;
+      status = data.status;
+      inventory = data.inventory
+    });
+    ids
   };
 };

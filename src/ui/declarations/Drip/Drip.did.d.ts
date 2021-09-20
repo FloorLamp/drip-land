@@ -34,6 +34,11 @@ export interface TransferNotification {
   from: Principal;
   amount: bigint;
 }
+export interface TransferRequest {
+  to: Principal;
+  token_id: bigint;
+  memo: [] | [Array<number>];
+}
 export default interface _SERVICE {
   add_airdrops: (arg_0: Array<Principal>) => Promise<boolean>;
   add_controller: (arg_0: Principal) => Promise<boolean>;
@@ -59,6 +64,6 @@ export default interface _SERVICE {
   supply: () => Promise<bigint>;
   symbol: () => Promise<string>;
   transfer_to: (arg_0: Principal, arg_1: bigint) => Promise<boolean>;
-  transfer_with_notify: (arg_0: Principal, arg_1: bigint) => Promise<boolean>;
+  transfer_with_notify: (arg_0: TransferRequest) => Promise<boolean>;
   user_tokens: (arg_0: Principal) => Promise<Array<bigint>>;
 }

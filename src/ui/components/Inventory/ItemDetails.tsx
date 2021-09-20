@@ -1,6 +1,8 @@
 import React from "react";
 import { Item } from "../../declarations/Bag/Bag.did";
+import { useEquip } from "../../lib/hooks/useEquip";
 import { useItemData } from "../../lib/hooks/useItemData";
+import { useUnequip } from "../../lib/hooks/useUnequip";
 import { useUnwrap } from "../../lib/hooks/useUnwrap";
 import { TypedItem } from "../../lib/types";
 import { bagUrl, dripUrl } from "../../lib/url";
@@ -24,6 +26,10 @@ export function getPropertyValue({ name, item }: { name: string; item: Item }) {
 export function ItemDetails({ item }: { item: TypedItem }) {
   const childData = useItemData(item.children);
   const unwrap = useUnwrap(item.id);
+  const equip = useEquip(item);
+  const unequip = useUnequip();
+
+  const isEquipped = item.state[0] && "equipped" in item.state[0];
 
   const handleUnwrap = async () => {
     if (!(await unwrap.mutateAsync())) {
@@ -97,7 +103,7 @@ export function ItemDetails({ item }: { item: TypedItem }) {
           {item.extWrapped && (
             <li>
               <SpinnerButton
-                activeClassName="btn-inventory"
+                className="btn-inventory"
                 onClick={handleUnwrap}
                 isLoading={unwrap.isLoading}
               >
@@ -105,6 +111,25 @@ export function ItemDetails({ item }: { item: TypedItem }) {
               </SpinnerButton>
             </li>
           )}
+          <li>
+            {isEquipped ? (
+              <SpinnerButton
+                className="btn-inventory"
+                onClick={() => unequip.mutate(item)}
+                isLoading={unequip.isLoading}
+              >
+                Unequip
+              </SpinnerButton>
+            ) : (
+              <SpinnerButton
+                className="btn-inventory"
+                onClick={() => equip.mutate()}
+                isLoading={equip.isLoading}
+              >
+                Equip
+              </SpinnerButton>
+            )}
+          </li>
         </ul>
       </div>
     </div>

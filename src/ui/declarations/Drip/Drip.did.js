@@ -31,6 +31,11 @@ export const idlFactory = ({ IDL }) => {
     headers: IDL.Vec(HeaderField),
     status_code: IDL.Nat16,
   });
+  const TransferRequest = IDL.Record({
+    to: IDL.Principal,
+    token_id: IDL.Nat64,
+    memo: IDL.Opt(IDL.Vec(IDL.Nat8)),
+  });
   return IDL.Service({
     add_airdrops: IDL.Func([IDL.Vec(IDL.Principal)], [IDL.Bool], []),
     add_controller: IDL.Func([IDL.Principal], [IDL.Bool], []),
@@ -48,7 +53,7 @@ export const idlFactory = ({ IDL }) => {
       ["query"]
     ),
     get_controllers: IDL.Func([], [IDL.Vec(IDL.Principal)], ["query"]),
-    get_cycles: IDL.Func([], [IDL.Int64], []),
+    get_cycles: IDL.Func([], [IDL.Nat64], []),
     get_token_properties: IDL.Func(
       [IDL.Nat64],
       [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))],
@@ -67,7 +72,7 @@ export const idlFactory = ({ IDL }) => {
     supply: IDL.Func([], [IDL.Nat64], []),
     symbol: IDL.Func([], [IDL.Text], ["query"]),
     transfer_to: IDL.Func([IDL.Principal, IDL.Nat64], [IDL.Bool], []),
-    transfer_with_notify: IDL.Func([IDL.Principal, IDL.Nat64], [IDL.Bool], []),
+    transfer_with_notify: IDL.Func([TransferRequest], [IDL.Bool], []),
     user_tokens: IDL.Func([IDL.Principal], [IDL.Vec(IDL.Nat64)], ["query"]),
   });
 };
